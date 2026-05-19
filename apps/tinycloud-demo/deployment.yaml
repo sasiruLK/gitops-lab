@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: tinycloud-demo
-          image: ghcr.io/sasirulk/tinycloud-demo-app:cfcabaa
+          image: ghcr.io/sasirulk/tinycloud-demo-app:11df13d
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
