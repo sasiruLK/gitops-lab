@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tinycloud-demo
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: tinycloud=ghcr.io/sasirulk/tinycloud-demo-app
+    argocd-image-updater.argoproj.io/tinycloud.update-strategy: newest-build
+    argocd-image-updater.argoproj.io/write-back-method: git
+    argocd-image-updater.argoproj.io/git-branch: main
+    argocd-image-updater.argoproj.io/tinycloud.pull-secret: pullsecret:argocd/ghcr-creds
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/sasiruLK/gitops-lab.git
+    targetRevision: main
+    path: apps/tinycloud-demo
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: demo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
