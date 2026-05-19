@@ -5,4 +5,4 @@ resources:
 
 images:
   - name: ghcr.io/sasirulk/tinycloud-demo-app
-    newTag: latest
+    newTag: 72ce078ce5cf65d9362fb0ec555b9d2a8ca38fe7
