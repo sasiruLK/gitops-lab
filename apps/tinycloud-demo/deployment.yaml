@@ -17,7 +17,7 @@ spec:
         - name: ghcr-creds
       containers:
         - name: tinycloud-demo
-          image: ghcr.io/sasirulk/tinycloud-demo-app:latest
+          image: ghcr.io/sasirulk/tinycloud-demo-app:11df13d
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
