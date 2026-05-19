@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tinycloud-demo
+  namespace: demo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tinycloud-demo
+  template:
+    metadata:
+      labels:
+        app: tinycloud-demo
+    spec:
+      containers:
+        - name: tinycloud-demo
+          image: ghcr.io/sasirulk/tinycloud-demo-app:cfcabaa
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
