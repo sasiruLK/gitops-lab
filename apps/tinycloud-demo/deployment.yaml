@@ -13,6 +13,8 @@ spec:
       labels:
         app: tinycloud-demo
     spec:
+      imagePullSecrets:
+        - name: ghcr-creds
       containers:
         - name: tinycloud-demo
           image: ghcr.io/sasirulk/tinycloud-demo-app:latest
