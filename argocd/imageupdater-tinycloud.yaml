@@ -5,7 +5,7 @@ metadata:
   namespace: argocd
 spec:
   commonUpdateSettings:
-    updateStrategy: latest
+    updateStrategy: newest-build
     allowTags: "regexp:^[a-f0-9]{40}$"
     pullSecret: pullsecret:argocd/ghcr-creds
 
