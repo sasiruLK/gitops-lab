@@ -4,19 +4,18 @@ metadata:
   name: tinycloud-demo
   namespace: argocd
 spec:
+  commonUpdateSettings:
+    updateStrategy: latest
+    allowTags: "regexp:^[a-f0-9]{40}$"
+    pullSecret: pullsecret:argocd/ghcr-creds
+
+  writeBackConfig:
+    method: git
+    gitConfig:
+      branch: main
+
   applicationRefs:
     - namePattern: tinycloud-demo
-      commonUpdateSettings:
-        updateStrategy: newest-build
-        pullSecret: pullsecret:argocd/ghcr-creds
-        writeBackConfig:
-          method: git
-          gitConfig:
-            branch: main
       images:
         - alias: tinycloud
-          imageName: ghcr.io/sasirulk/tinycloud-demo-app
-          tagFilter: regexp:^[a-f0-9]{40}$
-          manifestTargets:
-            - kustomize:
-                name: ghcr.io/sasirulk/tinycloud-demo-app
+          imageName: ghcr.io/sasirulk/tinycloud-demo-app:72ce078ce5cf65d9362fb0ec555b9d2a8ca38fe7
