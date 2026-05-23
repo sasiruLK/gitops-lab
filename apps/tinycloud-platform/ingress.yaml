@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tinycloud-platform
+  namespace: tinycloud
+  labels:
+    app.kubernetes.io/name: tinycloud-platform
+    app.kubernetes.io/part-of: tinycloud-platform
+    app.kubernetes.io/component: ingress
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - tinycloud-platform.duckdns.org
+      secretName: tinycloud-platform-tls
+  rules:
+    - host: tinycloud-platform.duckdns.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: oauth2-proxy
+                port:
+                  number: 4180

@@ -1,0 +1,44 @@
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: infra-critical
+value: 1000000
+preemptionPolicy: PreemptLowerPriority
+globalDefault: false
+description: "System-critical pods that must not be evicted (kube-system, Traefik)"
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: platform
+value: 100000
+preemptionPolicy: PreemptLowerPriority
+globalDefault: false
+description: "Platform infrastructure (Argo CD, TinyCloud API, OAuth2 Proxy)"
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: production
+value: 10000
+preemptionPolicy: PreemptLowerPriority
+globalDefault: false
+description: "Production application workloads"
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: observability
+value: 1000
+preemptionPolicy: PreemptLowerPriority
+globalDefault: false
+description: "Observability workloads (monitoring, logging) - can be evicted"
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: staging
+value: 100
+preemptionPolicy: PreemptLowerPriority
+globalDefault: false
+description: "Staging and demo workloads"

@@ -1,0 +1,4 @@
+creation_rules:
+  - age: age1gxfrs4d4kgx59lp56p3pmwpasssfyu2vtzcflcp5lswwagje0phqmhmn6m
+    path_regex: .*(secret|credential|token|password|key|pat).*\.yaml$
+    encrypted_regex: ^(data|stringData|token|password|secret|key|privateKey|client-secret|cookie-secret)$

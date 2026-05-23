@@ -23,6 +23,7 @@ spec:
       serviceAccountName: tinycloud-api
       imagePullSecrets:
         - name: ghcr-creds
+      priorityClassName: platform
       containers:
         - name: api
           image: ghcr.io/sasirulk/tinycloud-platform-api
@@ -34,7 +35,7 @@ spec:
             - name: PORT
               value: "8080"
             - name: CORS_ORIGINS
-              value: "http://tinycloud.local,https://tinycloud.local"
+              value: "https://tinycloud-platform.duckdns.org"
             - name: GITHUB_USERNAME
               valueFrom:
                 secretKeyRef:

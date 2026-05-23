@@ -22,6 +22,7 @@ spec:
     spec:
       imagePullSecrets:
         - name: ghcr-creds
+      priorityClassName: platform
       containers:
         - name: ui
           image: ghcr.io/sasirulk/tinycloud-platform-ui
