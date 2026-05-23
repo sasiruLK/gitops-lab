@@ -1,14 +1,23 @@
-version: '1.0'
+version: "1.0"
 schema: rollback-history
-generatedAt: '2026-05-23T01:45:00Z'
+generatedAt: "2026-05-23T02:56:03Z"
 apps:
   tinycloud-demo:
-    currentStatus: normal
-    activeRollback: null
+    currentStatus: rollback
+    activeRollback:
+      id: rb-tinycloud-demo-20260523-025603
+      type: rollback
+      timestamp: "2026-05-23T02:56:03Z"
+      targetRevision: d9caf430f1e31d8aabdc53ca4479acb65ccdc933
+      previousRevision: 005b1af1ccf79190e69eaeaf6ad06ddee1addc1e
+      previousImage: ghcr.io/sasirulk/tinycloud-demo-app:a5fc64046b5424f4bbd73fcb883cdc2c0b0f064c
+      reason: 'API rollback test: rollback to v3'
+      rollbackBranch: rollback/tinycloud-demo
+      initiatedBy: api-test
     history:
     - id: rb-tinycloud-demo-20260523-015025
       type: rollback
-      timestamp: '2026-05-23T01:50:25Z'
+      timestamp: "2026-05-23T01:50:25Z"
       targetRevision: d9caf430f1e31d8aabdc53ca4479acb65ccdc933
       targetImage: ghcr.io/sasirulk/tinycloud-demo-app:a948f7fed3fedceccdfb52dc94dbc2d509a8aaa4
       previousRevision: 0955600386dadaa5d34cfab1b33f916d94381340
@@ -18,8 +27,17 @@ apps:
       initiatedBy: Sasiru
     - id: rs-tinycloud-demo-20260523-015132
       type: restore
-      timestamp: '2026-05-23T01:51:32Z'
+      timestamp: "2026-05-23T01:51:32Z"
       restoredToRevision: 1f4e2d0d918a27df7451206d8380e3112d66e264
       restoredToImage: ghcr.io/sasirulk/tinycloud-demo-app:a5fc64046b5424f4bbd73fcb883cdc2c0b0f064c
       reason: test complete, restoring normal flow
       initiatedBy: Sasiru
+    - id: rb-tinycloud-demo-20260523-025603
+      type: rollback
+      timestamp: "2026-05-23T02:56:03Z"
+      targetRevision: d9caf430f1e31d8aabdc53ca4479acb65ccdc933
+      previousRevision: 005b1af1ccf79190e69eaeaf6ad06ddee1addc1e
+      previousImage: ghcr.io/sasirulk/tinycloud-demo-app:a5fc64046b5424f4bbd73fcb883cdc2c0b0f064c
+      reason: 'API rollback test: rollback to v3'
+      rollbackBranch: rollback/tinycloud-demo
+      initiatedBy: api-test
