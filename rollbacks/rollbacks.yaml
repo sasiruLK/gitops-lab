@@ -1,0 +1,18 @@
+version: '1.0'
+schema: rollback-history
+generatedAt: '2026-05-23T01:45:00Z'
+apps:
+  tinycloud-demo:
+    currentStatus: rollback
+    activeRollback: rb-tinycloud-demo-20260523-015025
+    history:
+    - id: rb-tinycloud-demo-20260523-015025
+      type: rollback
+      timestamp: '2026-05-23T01:50:25Z'
+      targetRevision: d9caf430f1e31d8aabdc53ca4479acb65ccdc933
+      targetImage: ghcr.io/sasirulk/tinycloud-demo-app:a948f7fed3fedceccdfb52dc94dbc2d509a8aaa4
+      previousRevision: 0955600386dadaa5d34cfab1b33f916d94381340
+      previousImage: ghcr.io/sasirulk/tinycloud-demo-app:a5fc64046b5424f4bbd73fcb883cdc2c0b0f064c
+      reason: 'manual test: rollback to v3'
+      rollbackBranch: rollback/tinycloud-demo
+      initiatedBy: Sasiru
