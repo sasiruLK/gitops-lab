@@ -4,7 +4,6 @@ metadata:
   name: tinycloud-ui
   namespace: argocd
 spec:
-  namespace: argocd
   applicationRefs:
     - namePattern: tinycloud-ui
       images:
