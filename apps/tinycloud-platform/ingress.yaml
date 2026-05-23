@@ -9,13 +9,8 @@ metadata:
     app.kubernetes.io/component: ingress
   annotations:
     kubernetes.io/ingress.class: traefik
-    traefik.ingress.kubernetes.io/router.entrypoints: websecure
 spec:
   ingressClassName: traefik
-  tls:
-    - hosts:
-        - tinycloud-platform.duckdns.org
-      secretName: tinycloud-platform-tls
   rules:
     - host: tinycloud-platform.duckdns.org
       http:

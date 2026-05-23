@@ -30,7 +30,7 @@ spec:
             - --http-address=0.0.0.0:4180
             - --redirect-url=https://tinycloud-platform.duckdns.org/oauth2/callback
             - --cookie-domain=tinycloud-platform.duckdns.org
-            - --cookie-secure=true
+            - --cookie-secure=false
             - --cookie-samesite=lax
             - --cookie-name=_tinycloud_session
             - --whitelist-domain=tinycloud-platform.duckdns.org
