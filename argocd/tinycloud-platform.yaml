@@ -1,10 +1,10 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: tinycloud-api
+  name: tinycloud-platform
   namespace: argocd
   labels:
-    app.kubernetes.io/name: tinycloud-api
+    app.kubernetes.io/name: tinycloud-platform
     app.kubernetes.io/part-of: tinycloud-platform
     app.kubernetes.io/managed-by: argocd
   finalizers:
@@ -14,7 +14,7 @@ spec:
   source:
     repoURL: https://github.com/sasiruLK/gitops-lab.git
     targetRevision: main
-    path: apps/tinycloud-api
+    path: apps/tinycloud-platform
   destination:
     server: https://kubernetes.default.svc
     namespace: tinycloud

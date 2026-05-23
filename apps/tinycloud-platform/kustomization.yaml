@@ -4,17 +4,6 @@ namespace: tinycloud
 
 resources:
   - namespace.yaml
-  - ../tinycloud-api/rbac.yaml
-  - ../tinycloud-api/service.yaml
-  - ../tinycloud-api/deployment.yaml
-  - ../tinycloud-ui/service.yaml
-  - ../tinycloud-ui/deployment.yaml
   - oauth2-proxy.yaml
   - ingress.yaml
   - network-policies.yaml
-
-images:
-  - name: ghcr.io/sasirulk/tinycloud-platform-api
-    newTag: latest
-  - name: ghcr.io/sasirulk/tinycloud-platform-ui
-    newTag: latest
