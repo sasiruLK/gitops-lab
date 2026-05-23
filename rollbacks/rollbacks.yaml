@@ -3,8 +3,8 @@ schema: rollback-history
 generatedAt: '2026-05-23T01:45:00Z'
 apps:
   tinycloud-demo:
-    currentStatus: rollback
-    activeRollback: rb-tinycloud-demo-20260523-015025
+    currentStatus: normal
+    activeRollback: null
     history:
     - id: rb-tinycloud-demo-20260523-015025
       type: rollback
@@ -15,4 +15,11 @@ apps:
       previousImage: ghcr.io/sasirulk/tinycloud-demo-app:a5fc64046b5424f4bbd73fcb883cdc2c0b0f064c
       reason: 'manual test: rollback to v3'
       rollbackBranch: rollback/tinycloud-demo
+      initiatedBy: Sasiru
+    - id: rs-tinycloud-demo-20260523-015132
+      type: restore
+      timestamp: '2026-05-23T01:51:32Z'
+      restoredToRevision: 1f4e2d0d918a27df7451206d8380e3112d66e264
+      restoredToImage: ghcr.io/sasirulk/tinycloud-demo-app:a5fc64046b5424f4bbd73fcb883cdc2c0b0f064c
+      reason: test complete, restoring normal flow
       initiatedBy: Sasiru
