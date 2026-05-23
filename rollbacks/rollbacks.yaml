@@ -1,19 +1,10 @@
 version: "1.0"
 schema: rollback-history
-generatedAt: "2026-05-23T04:59:20Z"
+generatedAt: "2026-05-23T05:00:47Z"
 apps:
   tinycloud-api:
-    currentStatus: rollback
-    activeRollback:
-      id: rb-tinycloud-api-20260523-045920
-      type: rollback
-      timestamp: "2026-05-23T04:59:20Z"
-      targetRevision: 8e94644437c6802eee46fe7bd38880e4f7593a1f
-      previousRevision: 52d34defd8fc9079a6f1cbaa20d2aa26b6c42ac8
-      previousImage: ghcr.io/sasirulk/tinycloud-platform-api:69f0f9f8980d1bf467dd4b4c38898b94dea8f715
-      reason: 'Self-rollback test: verify API can restore itself'
-      rollbackBranch: rollback/tinycloud-api
-      initiatedBy: api-test
+    currentStatus: normal
+    activeRollback: null
     history:
     - id: rb-tinycloud-api-20260523-045920
       type: rollback
@@ -23,6 +14,13 @@ apps:
       previousImage: ghcr.io/sasirulk/tinycloud-platform-api:69f0f9f8980d1bf467dd4b4c38898b94dea8f715
       reason: 'Self-rollback test: verify API can restore itself'
       rollbackBranch: rollback/tinycloud-api
+      initiatedBy: api-test
+    - id: rs-tinycloud-api-20260523-050047
+      type: restore
+      timestamp: "2026-05-23T05:00:47Z"
+      restoredToRevision: 8e94644437c6802eee46fe7bd38880e4f7593a1f
+      restoredToImage: ghcr.io/sasirulk/tinycloud-platform-api:latest
+      reason: 'Self-restore test: return to main after rollback'
       initiatedBy: api-test
   tinycloud-demo:
     currentStatus: normal
