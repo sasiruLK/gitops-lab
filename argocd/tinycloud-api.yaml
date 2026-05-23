@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tinycloud-api
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: tinycloud-api
+    app.kubernetes.io/part-of: tinycloud-platform
+    app.kubernetes.io/managed-by: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/sasiruLK/gitops-lab.git
+    targetRevision: main
+    path: apps/tinycloud-api
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tinycloud
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tinycloud-api
+  namespace: tinycloud
+  labels:
+    app.kubernetes.io/name: tinycloud-api
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: tinycloud-platform
+    app.kubernetes.io/managed-by: argocd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: tinycloud-api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: tinycloud-api
+        app.kubernetes.io/component: api
+        app.kubernetes.io/part-of: tinycloud-platform
+    spec:
+      serviceAccountName: tinycloud-api
+      imagePullSecrets:
+        - name: ghcr-creds
+      containers:
+        - name: api
+          image: ghcr.io/sasirulk/tinycloud-platform-api
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: PORT
+              value: "8080"
+            - name: CORS_ORIGINS
+              value: "http://tinycloud.local,https://tinycloud.local"
+            - name: GITHUB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: github-pat
+                  key: username
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: github-pat
+                  key: token
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /v1/health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /v1/health
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
