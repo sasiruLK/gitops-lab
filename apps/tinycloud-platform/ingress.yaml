@@ -7,6 +7,9 @@ metadata:
     app.kubernetes.io/name: tinycloud-platform
     app.kubernetes.io/part-of: tinycloud-platform
     app.kubernetes.io/component: ingress
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
 spec:
   ingressClassName: traefik
   tls:
