@@ -27,6 +27,15 @@ spec:
         - name: ui
           image: ghcr.io/sasirulk/tinycloud-platform-ui
           imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+            capabilities:
+              drop:
+                - ALL
           ports:
             - containerPort: 80
               name: http
