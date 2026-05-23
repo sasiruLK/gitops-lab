@@ -1,0 +1,21 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: tinycloud-platform-tls
+  namespace: tinycloud
+  labels:
+    app.kubernetes.io/name: tinycloud-platform
+    app.kubernetes.io/part-of: tinycloud-platform
+spec:
+  secretName: tinycloud-platform-tls
+  issuerRef:
+    name: letsencrypt-staging
+    kind: ClusterIssuer
+  dnsNames:
+    - tinycloud-platform.duckdns.org
+  acme:
+    config:
+      - http01:
+          ingressClass: traefik
+        domains:
+          - tinycloud-platform.duckdns.org

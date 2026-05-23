@@ -6,4 +6,5 @@ resources:
   - namespace.yaml
   - oauth2-proxy.yaml
   - ingress.yaml
+  - certificate.yaml
   - network-policies.yaml

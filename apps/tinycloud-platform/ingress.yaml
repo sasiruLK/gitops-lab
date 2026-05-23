@@ -7,9 +7,6 @@ metadata:
     app.kubernetes.io/name: tinycloud-platform
     app.kubernetes.io/part-of: tinycloud-platform
     app.kubernetes.io/component: ingress
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-staging
-    traefik.ingress.kubernetes.io/router.entrypoints: websecure
 spec:
   ingressClassName: traefik
   tls:
