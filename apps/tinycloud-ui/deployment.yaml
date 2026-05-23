@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tinycloud-ui
+  namespace: tinycloud
+  labels:
+    app.kubernetes.io/name: tinycloud-ui
+    app.kubernetes.io/component: ui
+    app.kubernetes.io/part-of: tinycloud-platform
+    app.kubernetes.io/managed-by: argocd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: tinycloud-ui
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: tinycloud-ui
+        app.kubernetes.io/component: ui
+        app.kubernetes.io/part-of: tinycloud-platform
+    spec:
+      imagePullSecrets:
+        - name: ghcr-creds
+      containers:
+        - name: ui
+          image: ghcr.io/sasirulk/tinycloud-platform-ui
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: http
+          resources:
+            requests:
+              memory: "32Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "200m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 5

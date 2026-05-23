@@ -1,0 +1,20 @@
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: tinycloud-ui
+  namespace: argocd
+spec:
+  namespace: argocd
+  applicationRefs:
+    - namePattern: tinycloud-ui
+      images:
+        - alias: ui
+          imageName: ghcr.io/sasirulk/tinycloud-platform-ui
+  commonUpdateSettings:
+    allowTags: "regexp:^[a-f0-9]{40}$"
+    updateStrategy: newest-build
+    pullSecret: pullsecret:argocd/ghcr-creds
+  writeBackConfig:
+    method: git
+    gitConfig:
+      branch: main

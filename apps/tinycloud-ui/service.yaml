@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tinycloud-ui
+  namespace: tinycloud
+  labels:
+    app.kubernetes.io/name: tinycloud-ui
+    app.kubernetes.io/component: ui
+    app.kubernetes.io/part-of: tinycloud-platform
+spec:
+  selector:
+    app.kubernetes.io/name: tinycloud-ui
+  ports:
+    - port: 80
+      targetPort: 80
+      name: http
+      protocol: TCP
+  type: ClusterIP

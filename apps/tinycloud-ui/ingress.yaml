@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tinycloud-ui
+  namespace: tinycloud
+  labels:
+    app.kubernetes.io/name: tinycloud-ui
+    app.kubernetes.io/component: ui
+    app.kubernetes.io/part-of: tinycloud-platform
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: tinycloud.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: tinycloud-ui
+                port:
+                  number: 80
