@@ -1,19 +1,10 @@
 version: "1.0"
 schema: rollback-history
-generatedAt: "2026-05-23T02:56:03Z"
+generatedAt: "2026-05-23T02:56:22Z"
 apps:
   tinycloud-demo:
-    currentStatus: rollback
-    activeRollback:
-      id: rb-tinycloud-demo-20260523-025603
-      type: rollback
-      timestamp: "2026-05-23T02:56:03Z"
-      targetRevision: d9caf430f1e31d8aabdc53ca4479acb65ccdc933
-      previousRevision: 005b1af1ccf79190e69eaeaf6ad06ddee1addc1e
-      previousImage: ghcr.io/sasirulk/tinycloud-demo-app:a5fc64046b5424f4bbd73fcb883cdc2c0b0f064c
-      reason: 'API rollback test: rollback to v3'
-      rollbackBranch: rollback/tinycloud-demo
-      initiatedBy: api-test
+    currentStatus: normal
+    activeRollback: null
     history:
     - id: rb-tinycloud-demo-20260523-015025
       type: rollback
@@ -40,4 +31,11 @@ apps:
       previousImage: ghcr.io/sasirulk/tinycloud-demo-app:a5fc64046b5424f4bbd73fcb883cdc2c0b0f064c
       reason: 'API rollback test: rollback to v3'
       rollbackBranch: rollback/tinycloud-demo
+      initiatedBy: api-test
+    - id: rs-tinycloud-demo-20260523-025622
+      type: restore
+      timestamp: "2026-05-23T02:56:22Z"
+      restoredToRevision: d9caf430f1e31d8aabdc53ca4479acb65ccdc933
+      restoredToImage: ghcr.io/sasirulk/tinycloud-demo-app:a948f7fed3fedceccdfb52dc94dbc2d509a8aaa4
+      reason: 'API restore test: returning to main'
       initiatedBy: api-test
