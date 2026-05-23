@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/component: api
     app.kubernetes.io/part-of: tinycloud-platform
 spec:
-  ingressClassName: nginx
+  ingressClassName: traefik
   rules:
     - host: api.tinycloud.local
       http:
