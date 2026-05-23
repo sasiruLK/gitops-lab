@@ -17,6 +17,7 @@ spec:
       labels:
         app.kubernetes.io/name: oauth2-proxy
         app.kubernetes.io/component: auth
+        app.kubernetes.io/part-of: tinycloud-platform
     spec:
       containers:
         - name: oauth2-proxy
