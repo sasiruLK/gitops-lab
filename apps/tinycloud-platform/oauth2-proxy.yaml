@@ -26,6 +26,7 @@ spec:
             - --provider=github
             - --github-user=sasiruLK
             - --email-domain=*
+            - --upstream=http://tinycloud-api:8080
             - --upstream=http://tinycloud-ui:80
             - --http-address=0.0.0.0:4180
             - --redirect-url=https://tinycloud-platform.duckdns.org/oauth2/callback
