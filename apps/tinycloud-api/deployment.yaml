@@ -35,7 +35,7 @@ spec:
             - name: PORT
               value: "8080"
             - name: CORS_ORIGINS
-              value: "http://tinycloud-platform.duckdns.org"
+              value: "https://tinycloud-platform.duckdns.org"
             - name: GITHUB_USERNAME
               valueFrom:
                 secretKeyRef:

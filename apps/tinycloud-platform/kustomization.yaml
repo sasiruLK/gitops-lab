@@ -5,6 +5,8 @@ namespace: tinycloud
 resources:
   - namespace.yaml
   - oauth2-proxy.yaml
-  - ingress.yaml
+  - ingressroute.yaml
+  - ingressroute-http.yaml
+  - middleware-redirect-https.yaml
   - certificate.yaml
   - network-policies.yaml
