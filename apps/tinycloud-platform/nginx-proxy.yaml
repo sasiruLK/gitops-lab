@@ -1,0 +1,90 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-proxy-config
+  namespace: tinycloud
+  labels:
+    app.kubernetes.io/name: nginx-proxy
+    app.kubernetes.io/part-of: tinycloud-platform
+data:
+  default.conf: |
+    server {
+      listen 80;
+      server_name _;
+
+      location /api/ {
+        proxy_pass http://tinycloud-api:8080/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+      }
+
+      location / {
+        proxy_pass http://tinycloud-ui:80/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-proxy
+  namespace: tinycloud
+  labels:
+    app.kubernetes.io/name: nginx-proxy
+    app.kubernetes.io/part-of: tinycloud-platform
+    app.kubernetes.io/component: proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: nginx-proxy
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: nginx-proxy
+        app.kubernetes.io/component: proxy
+        app.kubernetes.io/part-of: tinycloud-platform
+    spec:
+      priorityClassName: platform
+      containers:
+        - name: nginx
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+              name: http
+          volumeMounts:
+            - name: config
+              mountPath: /etc/nginx/conf.d
+          resources:
+            requests:
+              memory: "16Mi"
+              cpu: "10m"
+            limits:
+              memory: "64Mi"
+              cpu: "100m"
+      volumes:
+        - name: config
+          configMap:
+            name: nginx-proxy-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-proxy
+  namespace: tinycloud
+  labels:
+    app.kubernetes.io/name: nginx-proxy
+    app.kubernetes.io/part-of: tinycloud-platform
+spec:
+  selector:
+    app.kubernetes.io/name: nginx-proxy
+  ports:
+    - port: 80
+      targetPort: 80
+      name: http
+  type: ClusterIP

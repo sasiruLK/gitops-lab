@@ -39,6 +39,66 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
+  name: allow-nginx-to-api
+  namespace: tinycloud
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: tinycloud-api
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: nginx-proxy
+      ports:
+        - protocol: TCP
+          port: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-nginx-to-ui
+  namespace: tinycloud
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: tinycloud-ui
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: nginx-proxy
+      ports:
+        - protocol: TCP
+          port: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-oauth2-to-nginx
+  namespace: tinycloud
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: nginx-proxy
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: oauth2-proxy
+      ports:
+        - protocol: TCP
+          port: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
   name: allow-api-to-argocd
   namespace: argocd
 spec:
@@ -137,17 +197,10 @@ spec:
     - to:
         - podSelector:
             matchLabels:
-              app.kubernetes.io/name: tinycloud-ui
+              app.kubernetes.io/name: nginx-proxy
       ports:
         - protocol: TCP
           port: 80
-    - to:
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/name: tinycloud-api
-      ports:
-        - protocol: TCP
-          port: 8080
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
