@@ -92,7 +92,7 @@ spec:
               app.kubernetes.io/name: nginx-proxy
       ports:
         - protocol: TCP
-          port: 80
+          port: 8080
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -112,7 +112,7 @@ spec:
               app.kubernetes.io/name: oauth2-proxy
       ports:
         - protocol: TCP
-          port: 80
+          port: 8080
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -202,7 +202,7 @@ spec:
               app.kubernetes.io/name: tinycloud-ui
       ports:
         - protocol: TCP
-          port: 80
+          port: 8080
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -246,6 +246,8 @@ spec:
       ports:
         - protocol: TCP
           port: 80
+        - protocol: TCP
+          port: 8080
     - ports:
         - protocol: TCP
           port: 443

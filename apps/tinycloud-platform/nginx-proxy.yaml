@@ -9,7 +9,7 @@ metadata:
 data:
   default.conf: |
     server {
-      listen 80;
+      listen 8080;
       server_name _;
 
       location /api/ {
@@ -55,15 +55,32 @@ spec:
         app.kubernetes.io/part-of: tinycloud-platform
     spec:
       priorityClassName: platform
-      containers:
-        - name: nginx
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+        fsGroup: 101
+      initContainers:
+        - name: setup
           image: nginx:alpine
-          ports:
-            - containerPort: 80
-              name: http
-          volumeMounts:
-            - name: config
-              mountPath: /etc/nginx/conf.d
+          command: ["/bin/sh", "-c"]
+          args:
+            - mkdir -p /var/cache/nginx/client_temp
+              /var/cache/nginx/proxy_temp
+              /var/cache/nginx/fastcgi_temp
+              /var/cache/nginx/uwsgi_temp
+              /var/cache/nginx/scgi_temp
+              /var/run
+              /var/log/nginx
+              /tmp/nginx
+              && cp -r /etc/nginx/* /tmp/nginx/
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsUser: 101
           resources:
             requests:
               memory: "16Mi"
@@ -71,10 +88,58 @@ spec:
             limits:
               memory: "64Mi"
               cpu: "100m"
+          volumeMounts:
+            - name: var-cache
+              mountPath: /var/cache/nginx
+            - name: var-run
+              mountPath: /var/run
+            - name: var-log
+              mountPath: /var/log/nginx
+            - name: tmp-nginx
+              mountPath: /tmp/nginx
+      containers:
+        - name: nginx
+          image: nginx:alpine
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsUser: 101
+          ports:
+            - containerPort: 8080
+              name: http
+          resources:
+            requests:
+              memory: "16Mi"
+              cpu: "10m"
+            limits:
+              memory: "64Mi"
+              cpu: "100m"
+          volumeMounts:
+            - name: config
+              mountPath: /etc/nginx/conf.d
+            - name: var-cache
+              mountPath: /var/cache/nginx
+            - name: var-run
+              mountPath: /var/run
+            - name: var-log
+              mountPath: /var/log/nginx
+            - name: tmp-nginx
+              mountPath: /etc/nginx
       volumes:
         - name: config
           configMap:
             name: nginx-proxy-config
+        - name: var-cache
+          emptyDir: {}
+        - name: var-run
+          emptyDir: {}
+        - name: var-log
+          emptyDir: {}
+        - name: tmp-nginx
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -89,6 +154,6 @@ spec:
     app.kubernetes.io/name: nginx-proxy
   ports:
     - port: 80
-      targetPort: 80
+      targetPort: 8080
       name: http
   type: ClusterIP
