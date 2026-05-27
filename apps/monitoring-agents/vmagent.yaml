@@ -152,8 +152,9 @@ data:
             replacement: https
           - source_labels: [__meta_kubernetes_pod_node_name]
             target_label: instance
-          - target_label: __tls_config_insecure_skip_verify__
-            replacement: "true"
+        tls_config:
+          insecure_skip_verify: true
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
 
       # Kubelet metrics
       - job_name: 'kubernetes-kubelet'
@@ -168,8 +169,9 @@ data:
             regex: (.+)
             target_label: __metrics_path__
             replacement: /api/v1/nodes/${1}/proxy/metrics
-          - target_label: __tls_config_insecure_skip_verify__
-            replacement: "true"
+        tls_config:
+          insecure_skip_verify: true
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
 
       # Cadvisor metrics
       - job_name: 'kubernetes-cadvisor'
@@ -184,5 +186,6 @@ data:
             regex: (.+)
             target_label: __metrics_path__
             replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
-          - target_label: __tls_config_insecure_skip_verify__
-            replacement: "true"
+        tls_config:
+          insecure_skip_verify: true
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
