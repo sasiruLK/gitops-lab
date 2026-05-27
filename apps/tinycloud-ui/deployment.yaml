@@ -23,19 +23,24 @@ spec:
       imagePullSecrets:
         - name: ghcr-creds
       priorityClassName: platform
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: ui
           image: ghcr.io/sasirulk/tinycloud-platform-ui
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
-            seccompProfile:
-              type: RuntimeDefault
+            capabilities:
+              drop:
+                - ALL
           env:
             - name: API_BASE_URL
               value: "/api"
           ports:
-            - containerPort: 80
+            - containerPort: 8080
               name: http
           resources:
             requests:
@@ -47,12 +52,12 @@ spec:
           livenessProbe:
             httpGet:
               path: /
-              port: 80
+              port: 8080
             initialDelaySeconds: 5
             periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /
-              port: 80
+              port: 8080
             initialDelaySeconds: 3
             periodSeconds: 5
