@@ -73,6 +73,12 @@ if [[ -f "$GITOPS_BACKUP" ]]; then
     rm -f "$GITOPS_BACKUP"
 fi
 
+# Push backup success metric to VictoriaMetrics
+log "Pushing backup success metric to VictoriaMetrics..."
+curl -s -X POST \
+  --data-binary "backup_last_success_timestamp_seconds $(date +%s)" \
+  "http://150.136.96.152:8428/api/v1/import/prometheus" >/dev/null 2>&1 || log "Warning: Could not push backup metric to VM"
+
 # Clean up local backups older than retention period
 log "Cleaning up old local backups..."
 sudo find "$BACKUP_DIR" -name "k3s-sqlite-*.db" -type f -mtime +${RETENTION_DAYS} -delete

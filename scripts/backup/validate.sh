@@ -249,6 +249,11 @@ log "Warnings: ${WARNINGS}"
 
 if [[ "$ERRORS" -eq 0 ]]; then
     log "RESULT: PASS — All backup validations passed"
+    # Push validation success metric to VictoriaMetrics
+    log "Pushing validation success metric to VictoriaMetrics..."
+    curl -s -X POST \
+      --data-binary "backup_last_success_timestamp_seconds $(date +%s)" \
+      "http://150.136.96.152:8428/api/v1/import/prometheus" >/dev/null 2>&1 || log "Warning: Could not push validation metric to VM"
     exit 0
 else
     log "RESULT: FAIL — Backup validation failed with ${ERRORS} error(s)"

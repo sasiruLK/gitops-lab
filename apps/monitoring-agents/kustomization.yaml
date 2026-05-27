@@ -8,3 +8,5 @@ resources:
   - kube-state-metrics.yaml
   - promtail.yaml
   - vmagent.yaml
+  - alertmanager.yaml
+  - vmalert.yaml

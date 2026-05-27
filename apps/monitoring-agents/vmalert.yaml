@@ -1,0 +1,118 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vmalert-rules
+  namespace: monitoring
+data:
+  alerts.yaml: |
+    groups:
+    - name: tinycloud-infrastructure
+      interval: 30s
+      rules:
+      - alert: InstanceDown
+        expr: up{job=~"node-exporter|tinycloud-api|kube-state-metrics"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Instance {{ $labels.instance }} is down"
+          description: "Job {{ $labels.job }} on {{ $labels.instance }} has been down for more than 5 minutes."
+
+      - alert: NodeDiskHigh
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) < 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Node {{ $labels.instance }} disk usage high"
+          description: "Filesystem {{ $labels.mountpoint }} on {{ $labels.instance }} has less than 10% free space."
+
+      - alert: PodCrashLooping
+        expr: rate(kube_pod_container_status_restarts_total[15m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is crash looping"
+          description: "Container {{ $labels.container }} in pod {{ $labels.namespace }}/{{ $labels.pod }} has restarted {{ $value }} times in the last 15 minutes."
+
+      - alert: TinyCloudAPIDown
+        expr: up{job="tinycloud-api"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "TinyCloud API is down"
+          description: "The TinyCloud API at {{ $labels.instance }} has been unreachable for more than 2 minutes."
+
+      - alert: BackupTooOld
+        expr: (time() - backup_last_success_timestamp_seconds) > (25 * 3600)
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Backup is too old"
+          description: "The last successful backup was more than 25 hours ago. Last backup: {{ $value | humanizeDuration }} ago."
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vmalert
+  namespace: monitoring
+  labels:
+    app: vmalert
+spec:
+  selector:
+    app: vmalert
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vmalert
+  namespace: monitoring
+  labels:
+    app: vmalert
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vmalert
+  template:
+    metadata:
+      labels:
+        app: vmalert
+    spec:
+      containers:
+      - name: vmalert
+        image: victoriametrics/vmalert:v1.102.1
+        args:
+        - '-datasource.url=http://150.136.96.152:8428'
+        - '-remoteRead.url=http://150.136.96.152:8428'
+        - '-notifier.url=http://alertmanager.monitoring.svc:9093'
+        - '-rule=/etc/vmalert/rules/*.yaml'
+        - '-evaluationInterval=30s'
+        - '-external.url=http://vmalert.monitoring.svc:8080'
+        ports:
+        - containerPort: 8080
+          name: http
+        volumeMounts:
+        - name: rules
+          mountPath: /etc/vmalert/rules
+          readOnly: true
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+      volumes:
+      - name: rules
+        configMap:
+          name: vmalert-rules
