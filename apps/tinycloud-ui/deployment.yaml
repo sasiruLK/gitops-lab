@@ -31,9 +31,6 @@ spec:
             allowPrivilegeEscalation: false
             seccompProfile:
               type: RuntimeDefault
-            capabilities:
-              drop:
-                - ALL
           env:
             - name: API_BASE_URL
               value: "/api"
