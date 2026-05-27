@@ -9,7 +9,7 @@ metadata:
 spec:
   secretName: tinycloud-platform-tls
   issuerRef:
-    name: letsencrypt-staging
+    name: letsencrypt-prod
     kind: ClusterIssuer
   dnsNames:
     - tinycloud-platform.duckdns.org

@@ -6,7 +6,6 @@ namespace: tinycloud
 resources:
   - deployment.yaml
   - service.yaml
-  - ingress.yaml
 
 images:
   - name: ghcr.io/sasirulk/tinycloud-platform-ui

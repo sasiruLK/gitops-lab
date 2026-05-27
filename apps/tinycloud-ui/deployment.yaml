@@ -36,6 +36,9 @@ spec:
             capabilities:
               drop:
                 - ALL
+          env:
+            - name: API_BASE_URL
+              value: "/api"
           ports:
             - containerPort: 80
               name: http
