@@ -119,9 +119,6 @@ data:
           # Only scrape pods on this node
           - source_labels: [__meta_kubernetes_pod_node_name]
             target_label: __host__
-          - action: keep
-            source_labels: [__host__]
-            regex: ^${HOSTNAME}$
           # Map pod labels
           - action: labelmap
             regex: __meta_kubernetes_pod_label_(.+)
