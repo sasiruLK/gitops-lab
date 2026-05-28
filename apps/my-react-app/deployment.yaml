@@ -24,7 +24,7 @@ spec:
           image: ghcr.io/sasirulk/tinycloud-demo-react:1.0.0
           imagePullPolicy: Always
           ports:
-            - containerPort: 8080
+            - containerPort: 80
               name: http
           resources:
             requests:
