@@ -1,0 +1,48 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: user-apps
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: tinycloud-platform
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - git:
+        repoURL: https://github.com/sasiruLK/gitops-lab.git
+        revision: main
+        directories:
+          - path: apps/*
+          - path: apps/tinycloud-api
+            exclude: true
+          - path: apps/tinycloud-ui
+            exclude: true
+          - path: apps/tinycloud-platform
+            exclude: true
+          - path: apps/monitoring-agents
+            exclude: true
+          - path: apps/tinycloud-demo
+            exclude: true
+          - path: apps/_template
+            exclude: true
+  template:
+    metadata:
+      name: "{{.path.basename}}"
+      labels:
+        tinycloud.io/managed-by: platform
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/sasiruLK/gitops-lab.git
+        targetRevision: main
+        path: "{{.path.path}}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "{{.path.basename}}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

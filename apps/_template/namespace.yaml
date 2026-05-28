@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{APP_NAME}}
+  labels:
+    tinycloud.io/managed-by: platform
+    app.kubernetes.io/name: {{APP_NAME}}
