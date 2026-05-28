@@ -1,3 +1,3 @@
 kustomize:
   images:
-  - ghcr.io/sasirulk/tinycloud-platform-api:e0e89fbafa404062b9f46c10cf4f9b09e470078e
+  - ghcr.io/sasirulk/tinycloud-platform-api:971e76960279548d29520fdeb2cf9116bd1bf4a2
