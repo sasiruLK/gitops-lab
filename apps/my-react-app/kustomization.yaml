@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: my-react-app
+
+resources:
+  - namespace.yaml
+  - deployment.yaml
+  - service.yaml
+  - resource-quota.yaml
+  - network-policies.yaml
+
+images:
+  - name: ghcr.io/sasirulk/tinycloud-demo-react
+    newTag: 1.0.0
