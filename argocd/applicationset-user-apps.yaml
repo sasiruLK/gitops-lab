@@ -24,6 +24,10 @@ spec:
             exclude: true
           - path: apps/tinycloud-demo
             exclude: true
+          - path: apps/nginx
+            exclude: true
+          - path: apps/nginx-demo
+            exclude: true
           - path: apps/_template
             exclude: true
   template:
