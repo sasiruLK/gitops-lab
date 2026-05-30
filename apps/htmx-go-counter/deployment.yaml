@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: htmx-go-counter
+  labels:
+    app.kubernetes.io/name: htmx-go-counter
+    app.kubernetes.io/managed-by: tinycloud
+    tinycloud.io/managed-by: platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: htmx-go-counter
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: htmx-go-counter
+        tinycloud.io/managed-by: platform
+    spec:
+      imagePullSecrets:
+        - name: ghcr-creds
+      containers:
+        - name: htmx-go-counter
+          image: ghcr.io/sasirulk/htmx-go-counter:03e1d9ced5704691a21f355302a9b9a3a1e2894e
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+
