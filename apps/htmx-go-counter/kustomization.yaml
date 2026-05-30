@@ -9,8 +9,7 @@ resources:
   - service.yaml
   - resource-quota.yaml
   - network-policies.yaml
-  - configmap-html.yaml
 
 images:
   - name: ghcr.io/sasirulk/htmx-go-counter
-    newTag: fixed
+    newTag: 12b1f816385463fc944147c64f089719cfe8f8b1

@@ -21,16 +21,11 @@ spec:
         - name: ghcr-creds
       containers:
         - name: htmx-go-counter
-          image: ghcr.io/sasirulk/htmx-go-counter:03e1d9ced5704691a21f355302a9b9a3a1e2894e
+          image: ghcr.io/sasirulk/htmx-go-counter:12b1f816385463fc944147c64f089719cfe8f8b1
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
               name: http
-          volumeMounts:
-            - name: html
-              mountPath: /home/nonroot/index.html
-              subPath: index.html
-              readOnly: true
           resources:
             requests:
               cpu: 50m
@@ -38,7 +33,3 @@ spec:
             limits:
               cpu: 250m
               memory: 256Mi
-      volumes:
-        - name: html
-          configMap:
-            name: htmx-go-counter-html
