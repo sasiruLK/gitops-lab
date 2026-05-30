@@ -47,7 +47,7 @@ spec:
                   name: github-pat
                   key: token
             - name: BUILD_COORDINATOR_URL
-              value: "http://10.0.0.55:8090"
+              value: "http://10.0.0.107:8090"
             - name: BUILD_COORDINATOR_TOKEN
               valueFrom:
                 secretKeyRef:
