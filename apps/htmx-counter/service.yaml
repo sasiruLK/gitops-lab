@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: htmx-counter
+  labels:
+    app.kubernetes.io/name: htmx-counter
+    tinycloud.io/managed-by: platform
+spec:
+  selector:
+    app.kubernetes.io/name: htmx-counter
+  ports:
+    - port: 80
+      targetPort: http
+      name: http
