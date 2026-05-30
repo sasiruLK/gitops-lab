@@ -23,7 +23,7 @@ spec:
           image: victoriametrics/vmagent:v1.102.1
           args:
             - -promscrape.config=/config/scrape.yml
-            - -remoteWrite.url=http://150.136.96.152:8428/api/v1/write
+            - -remoteWrite.url=http://victoria-metrics.monitoring.svc:8428/api/v1/write
             - -remoteWrite.sendTimeout=30s
             - -promscrape.kubernetesSDCheckInterval=30s
           ports:

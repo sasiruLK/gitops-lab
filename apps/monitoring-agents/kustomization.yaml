@@ -4,6 +4,8 @@ namespace: monitoring
 
 resources:
   - namespace.yaml
+  - victoria-metrics.yaml
+  - loki.yaml
   - node-exporter.yaml
   - kube-state-metrics.yaml
   - promtail.yaml

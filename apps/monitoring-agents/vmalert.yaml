@@ -92,8 +92,8 @@ spec:
       - name: vmalert
         image: victoriametrics/vmalert:v1.102.1
         args:
-        - '-datasource.url=http://150.136.96.152:8428'
-        - '-remoteRead.url=http://150.136.96.152:8428'
+        - '-datasource.url=http://victoria-metrics.monitoring.svc:8428'
+        - '-remoteRead.url=http://victoria-metrics.monitoring.svc:8428'
         - '-notifier.url=http://alertmanager.monitoring.svc:9093'
         - '-rule=/etc/vmalert/rules/*.yaml'
         - '-evaluationInterval=30s'

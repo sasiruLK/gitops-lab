@@ -106,7 +106,7 @@ data:
       http_listen_port: 3101
       grpc_listen_port: 0
     clients:
-      - url: http://150.136.96.152:3100/loki/api/v1/push
+      - url: http://loki.monitoring.svc:3100/loki/api/v1/push
     positions:
       filename: /tmp/positions.yaml
     scrape_configs:
