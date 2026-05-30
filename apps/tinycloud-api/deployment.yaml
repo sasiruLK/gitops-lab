@@ -26,7 +26,7 @@ spec:
       priorityClassName: platform
       containers:
         - name: api
-          image: ghcr.io/sasirulk/tinycloud-platform-api
+          image: ghcr.io/sasirulk/tinycloud-platform-api:2d9af5a918625f753d115942966eccd1c7b14c95
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
