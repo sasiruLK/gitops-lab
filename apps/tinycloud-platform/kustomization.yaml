@@ -10,3 +10,4 @@ resources:
   - middleware-redirect-https.yaml
   - certificate.yaml
   - network-policies.yaml
+  - ocir-creds-reader-rbac.yaml

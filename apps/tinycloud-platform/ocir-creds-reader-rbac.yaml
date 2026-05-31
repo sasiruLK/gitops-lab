@@ -1,0 +1,11 @@
+# Lets onboarded app PreSync hooks read ocir-creds from argocd and copy into their namespace.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ocir-creds-reader
+  namespace: argocd
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["ocir-creds"]
+    verbs: ["get"]
