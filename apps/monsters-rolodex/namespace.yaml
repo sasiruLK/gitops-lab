@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: monsters-rolodex
-  labels:
-    tinycloud.io/managed-by: platform
-    app.kubernetes.io/name: monsters-rolodex
