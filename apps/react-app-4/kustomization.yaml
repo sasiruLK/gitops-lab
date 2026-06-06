@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: react-app-4
+
+resources:
+  - namespace.yaml
+  - pull-secret-sync.yaml
+  - deployment.yaml
+  - service.yaml
+  - resource-quota.yaml
+  - network-policies.yaml
+
+images:
+  - name: iad.ocir.io/idzghas4xwzv/tinycloud/react-app-4
+    newTag: a0eb6c07ecea25c6d68ef21c89cb2ac2542a0d38
