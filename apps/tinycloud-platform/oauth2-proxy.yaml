@@ -28,12 +28,12 @@ spec:
             - --email-domain=*
             - --upstream=http://nginx-proxy:80
             - --http-address=0.0.0.0:4180
-            - --redirect-url=https://tinycloud-platform.duckdns.org/oauth2/callback
-            - --cookie-domain=tinycloud-platform.duckdns.org
+            - --redirect-url=https://tinycloud.sasiru.lk/oauth2/callback
+            - --cookie-domain=sasiru.lk
             - --cookie-secure=true
             - --cookie-samesite=lax
             - --cookie-name=_tinycloud_session
-            - --whitelist-domain=tinycloud-platform.duckdns.org
+            - --whitelist-domain=.sasiru.lk
             - --reverse-proxy=true
             - --silence-ping-logging=true
             - --skip-auth-route=^/api/v1/health$

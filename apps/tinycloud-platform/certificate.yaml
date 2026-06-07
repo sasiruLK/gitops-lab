@@ -9,7 +9,8 @@ metadata:
 spec:
   secretName: tinycloud-platform-tls
   issuerRef:
-    name: letsencrypt-prod
+    name: letsencrypt-cloudflare-prod
     kind: ClusterIssuer
   dnsNames:
-    - tinycloud-platform.duckdns.org
+    - sasiru.lk
+    - '*.sasiru.lk'

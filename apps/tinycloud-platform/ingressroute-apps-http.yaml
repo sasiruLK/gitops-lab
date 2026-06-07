@@ -11,7 +11,7 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: HostRegexp(`{app:[a-z0-9-]+}.tinycloud-platform.duckdns.org`)
+    - match: HostRegexp(`{app:[a-z0-9-]+}.sasiru.lk`)
       kind: Rule
       priority: 10
       services:

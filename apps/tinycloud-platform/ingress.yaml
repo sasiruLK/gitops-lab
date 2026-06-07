@@ -12,7 +12,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: tinycloud-platform.duckdns.org
+    - host: tinycloud.sasiru.lk
       http:
         paths:
           - path: /

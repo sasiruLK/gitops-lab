@@ -17,7 +17,7 @@ POST /v1/apps  →  API enqueues build  →  Coordinator  →  Runner builds + p
                                                               ↓
 Coordinator commits manifests  →  ApplicationSet  →  Argo CD Application  →  sync
                                                               ↓
-nginx-proxy routes {name}.tinycloud-platform.duckdns.org  →  {name}.{name}.svc:80
+nginx-proxy routes {name}.sasiru.lk  →  {name}.{name}.svc:80
 ```
 
 **Architectural rule:** Git is the source of truth. ApplicationSet owns Applications. The API only validates and commits to Git.
@@ -29,16 +29,16 @@ nginx-proxy routes {name}.tinycloud-platform.duckdns.org  →  {name}.{name}.svc
 | App name | DNS-1123, max 63 chars |
 | Namespace | Same as app name |
 | Service | Same as app name, port 80 → container port `8080` |
-| Public URL | `https://{name}.tinycloud-platform.duckdns.org/` |
+| Public URL | `https://{name}.sasiru.lk/` |
 | Image tags | Immutable source commit SHA |
 | Runtime contract | container listens on `8080` and serves `/healthz` |
 
-Current limitation: wildcard HTTPS for app subdomains still needs DNS-01 or a real wildcard-capable domain. The subdomain routing manifests can be applied now, but the existing single-host certificate only covers `tinycloud-platform.duckdns.org`.
+TLS contract: wildcard HTTPS is expected via the `letsencrypt-cloudflare-prod` ClusterIssuer and a `cloudflare-api-token` secret in the `cert-manager` namespace with key `api-token`.
 
 ## API Usage
 
 ```bash
-curl -X POST https://tinycloud-platform.duckdns.org/api/v1/apps \
+curl -X POST https://tinycloud.sasiru.lk/api/v1/apps \
   -H "Content-Type: application/json" \
   -d '{
     "name": "my-app",
@@ -78,7 +78,7 @@ kubectl get secret ocir-creds -n argocd -o yaml \
 ## Suspend an App
 
 ```bash
-curl -X POST https://tinycloud-platform.duckdns.org/api/v1/apps/my-app/suspend
+curl -X POST https://tinycloud.sasiru.lk/api/v1/apps/my-app/suspend
 ```
 
 Sets `replicas: 0` in Git. App history and Argo CD Application are preserved.

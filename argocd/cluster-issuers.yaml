@@ -19,6 +19,26 @@ spec:
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
+  name: letsencrypt-cloudflare-prod
+  labels:
+    app.kubernetes.io/name: letsencrypt
+    app.kubernetes.io/component: cloudflare-production
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: sasiruravihansa@gmail.com
+    privateKeySecretRef:
+      name: letsencrypt-cloudflare-prod
+    solvers:
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-api-token
+              key: api-token
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
   name: letsencrypt-prod
   labels:
     app.kubernetes.io/name: letsencrypt
