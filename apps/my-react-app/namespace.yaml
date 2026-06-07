@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: my-react-app
-  labels:
-    tinycloud.io/managed-by: platform
-    app.kubernetes.io/name: my-react-app
