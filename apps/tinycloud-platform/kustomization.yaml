@@ -7,6 +7,8 @@ resources:
   - nginx-proxy.yaml
   - ingressroute.yaml
   - ingressroute-http.yaml
+  - ingressroute-apps.yaml
+  - ingressroute-apps-http.yaml
   - middleware-redirect-https.yaml
   - certificate.yaml
   - network-policies.yaml

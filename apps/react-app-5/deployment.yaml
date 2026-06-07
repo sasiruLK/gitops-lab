@@ -24,8 +24,23 @@ spec:
           image: iad.ocir.io/idzghas4xwzv/tinycloud/react-app-5:a0eb6c07ecea25c6d68ef21c89cb2ac2542a0d38
           imagePullPolicy: Always
           ports:
-            - containerPort: 80
+            - containerPort: 8080
               name: http
+          env:
+            - name: PORT
+              value: "8080"
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
           resources:
             requests:
               cpu: 50m
@@ -33,4 +48,3 @@ spec:
             limits:
               cpu: 250m
               memory: 256Mi
-

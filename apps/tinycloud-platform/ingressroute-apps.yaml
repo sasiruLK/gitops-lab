@@ -1,0 +1,21 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: tinycloud-apps
+  namespace: tinycloud
+  labels:
+    app.kubernetes.io/name: tinycloud-platform
+    app.kubernetes.io/part-of: tinycloud-platform
+    app.kubernetes.io/component: ingress
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: HostRegexp(`{app:[a-z0-9-]+}.tinycloud-platform.duckdns.org`)
+      kind: Rule
+      priority: 10
+      services:
+        - name: nginx-proxy
+          port: 80
+  tls:
+    secretName: tinycloud-platform-tls

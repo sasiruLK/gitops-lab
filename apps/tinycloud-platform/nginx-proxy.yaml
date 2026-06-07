@@ -10,6 +10,21 @@ data:
   default.conf: |
     server {
       listen 8080;
+      server_name ~^(?<app>[a-z0-9-]+)\.tinycloud-platform\.duckdns\.org$;
+
+      resolver RESOLVER_IP valid=30s ipv6=off;
+
+      location / {
+        proxy_pass http://$app.$app.svc.cluster.local;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+      }
+    }
+
+    server {
+      listen 8080;
       server_name _;
 
       resolver RESOLVER_IP valid=30s ipv6=off;
