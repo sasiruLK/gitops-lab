@@ -18,7 +18,7 @@ spec:
         tinycloud.io/managed-by: platform
     spec:
       imagePullSecrets:
-        - name: ghcr-creds
+        - name: ocir-creds
       containers:
         - name: {{APP_NAME}}
           image: {{IMAGE}}:{{TAG}}

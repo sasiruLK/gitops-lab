@@ -7,6 +7,7 @@ set -euo pipefail
 
 GITOPS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 ROLLBACKS_FILE="${GITOPS_DIR}/rollbacks/rollbacks.yaml"
+IMAGE_RE='(ghcr\.io|iad\.ocir\.io)/[^[:space:]]*'
 
 # ---------------------------------------------------------------------------
 # validate_sha <sha>
@@ -41,9 +42,9 @@ get_current_image() {
     local app="$1"
     local sidecar="apps/${app}/.argocd-source-${app}.yaml"
     if [[ -f "${GITOPS_DIR}/${sidecar}" ]]; then
-        grep -o 'ghcr.io/sasirulk/[^[:space:]]*' "${GITOPS_DIR}/${sidecar}" | head -1 || true
+        grep -Eo "$IMAGE_RE" "${GITOPS_DIR}/${sidecar}" | head -1 || true
     else
-        git show "origin/main:${sidecar}" 2>/dev/null | grep -o 'ghcr.io/sasirulk/[^[:space:]]*' | head -1 || true
+        git show "origin/main:${sidecar}" 2>/dev/null | grep -Eo "$IMAGE_RE" | head -1 || true
     fi
 }
 
@@ -55,7 +56,7 @@ get_image_at_sha() {
     local app="$1"
     local sha="$2"
     local sidecar="apps/${app}/.argocd-source-${app}.yaml"
-    git show "${sha}:${sidecar}" 2>/dev/null | grep -o 'ghcr.io/sasirulk/[^[:space:]]*' | head -1 || true
+    git show "${sha}:${sidecar}" 2>/dev/null | grep -Eo "$IMAGE_RE" | head -1 || true
 }
 
 # ---------------------------------------------------------------------------

@@ -1,61 +1,59 @@
 # GitOps Lab
 
-A simple GitOps lab for deploying an Nginx demo app with Argo CD.
+GitOps source of truth for the OCI Always Free platform lab.
 
-## Structure
+## Target Platform
 
-```
-apps/nginx/
-├── namespace.yaml    # Creates the "demo" namespace
-├── deployment.yaml   # nginx-demo Deployment (2 replicas)
-├── service.yaml      # ClusterIP Service on port 80
-└── ingress.yaml      # Ingress for nginx.sasiru.local (Traefik)
-```
+- `k3s-control` on ARM
+- `k3s-worker-1` on ARM
+- `k3s-worker-2` on ARM
+- dedicated ARM `build-vm` outside the cluster for native ARM image builds
+- OCI Bastion for admin access
+- OCIR for images and BuildKit cache
+- Argo CD for cluster reconciliation
 
-## Prerequisites
+## Repo Layout
 
-- A Kubernetes cluster
-- Argo CD installed in the cluster
-- Traefik (or another Ingress controller) installed
-- `nginx.sasiru.local` resolving to your cluster Ingress IP (update your `/etc/hosts` if needed)
-
-## Deploy with Argo CD
-
-### 1. Log in to Argo CD
-
-```bash
-argocd login <ARGOCD_SERVER>
+```text
+argocd/                  Argo CD Applications, ApplicationSets, ImageUpdater objects
+apps/tinycloud-api/      Platform API deployment
+apps/tinycloud-ui/       Platform UI deployment
+apps/tinycloud-platform/ Shared ingress, oauth2-proxy, network policy, TLS
+apps/_template/          App template used by TinyCloud self-service workflows
+docs/                    App onboarding and rollback notes
+rollbacks/               Rollback audit log
+scripts/                 Manual rollback and backup helpers
 ```
 
-### 2. Create the Application
+## Base Delivery Flow
 
-```bash
-argocd app create nginx-demo \
-  --repo https://github.com/<your-username>/gitops-lab.git \
-  --path apps/nginx \
-  --dest-server https://kubernetes.default.svc \
-  --dest-namespace demo \
-  --sync-policy automated \
-  --auto-prune \
-  --self-heal
+```text
+GitHub repo -> CI build on ARM build-vm -> OCIR image push
+          -> GitOps repo update -> Argo CD sync -> k3s deploy
 ```
 
-> Replace `<your-username>` with your actual GitHub username or repository URL.
+The base platform is intentionally **pure GitOps first**. `tinycloud-platform` can be layered back on later, but Argo CD and this repo remain the deployment source of truth.
 
-### 3. Sync the Application
+## Required Cluster Prerequisites
 
-If not using automated sync:
+- k3s cluster already running
+- Argo CD installed
+- Traefik installed
+- cert-manager installed
+- `ocir-creds` present in `argocd`, `tinycloud`, and each app namespace
 
-```bash
-argocd app sync nginx-demo
-```
+## Conventions
 
-### 4. Access the App
+- App namespaces match app names
+- Public app URLs use `https://{app}.sasiru.lk/`
+- Runtime contract is port `8080` and `/healthz`
+- Platform images live under `iad.ocir.io/idzghas4xwzv/tinycloud/*`
 
-Add the host to your local `/etc/hosts` if necessary:
+## First Validation Target
 
-```
-<INGRESS_IP> nginx.sasiru.local
-```
+Use this repo to prove one end-to-end deployment:
 
-Then open [http://nginx.sasiru.local](http://nginx.sasiru.local) in your browser.
+1. Push image to OCIR
+2. Update manifest or sidecar tag in this repo
+3. Let Argo CD sync
+4. Verify the app is reachable on its public hostname

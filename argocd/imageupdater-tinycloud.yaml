@@ -7,7 +7,7 @@ spec:
   commonUpdateSettings:
     updateStrategy: newest-build
     allowTags: "regexp:^[a-f0-9]{40}$"
-    pullSecret: pullsecret:argocd/ghcr-creds
+    pullSecret: pullsecret:argocd/ocir-creds
 
   writeBackConfig:
     method: git
@@ -18,4 +18,4 @@ spec:
     - namePattern: tinycloud-demo
       images:
         - alias: tinycloud
-          imageName: ghcr.io/sasirulk/tinycloud-demo-app
+          imageName: iad.ocir.io/idzghas4xwzv/tinycloud/tinycloud-demo-app

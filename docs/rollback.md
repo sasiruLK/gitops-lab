@@ -45,7 +45,7 @@ Rollback Flow:
 ## 3. How It Works with Image Updater
 
 Image Updater's sole job is to:
-1. Poll GHCR for new SHA tags
+1. Poll OCIR for new SHA tags
 2. Write `.argocd-source-*.yaml` to the branch configured in `writeBackConfig.gitConfig.branch` (`main`)
 3. Push the commit
 
@@ -80,7 +80,7 @@ kubectl patch imageupdater tinycloud-demo -n argocd --type=merge -p \
 ```yaml
 images:
   - alias: tinycloud
-    imageName: ghcr.io/sasirulk/tinycloud-demo-app:999274c96e8315e4556f910aff30a081486f0cda
+    imageName: iad.ocir.io/idzghas4xwzv/tinycloud/tinycloud-demo-app:999274c96e8315e4556f910aff30a081486f0cda
 ```
 Image Updater sees this as "already current" and stops proposing updates.
 
@@ -258,9 +258,9 @@ apps:
         type: rollback
         timestamp: "2026-05-23T10:15:00Z"
         targetRevision: a948f7f...
-        targetImage: ghcr.io/sasirulk/tinycloud-demo-app:a948f7f...
+        targetImage: iad.ocir.io/idzghas4xwzv/tinycloud/tinycloud-demo-app:a948f7f...
         previousRevision: 89d78fd...
-        previousImage: ghcr.io/sasirulk/tinycloud-demo-app:999274c...
+        previousImage: iad.ocir.io/idzghas4xwzv/tinycloud/tinycloud-demo-app:999274c...
         reason: "performance regression in v4"
         rollbackBranch: rollback/tinycloud-demo
         initiatedBy: sasiru
@@ -268,7 +268,7 @@ apps:
         type: restore
         timestamp: "2026-05-23T11:00:00Z"
         restoredToRevision: 0955600...
-        restoredToImage: ghcr.io/sasirulk/tinycloud-demo-app:a5fc640...
+        restoredToImage: iad.ocir.io/idzghas4xwzv/tinycloud/tinycloud-demo-app:a5fc640...
         reason: "incident resolved"
         initiatedBy: sasiru
 ```
@@ -297,7 +297,7 @@ The script creates it with `git branch -f`. If creation fails, check SSH keys an
 Argo CD may take up to 3 minutes to detect the branch change. Use `kubectl patch application ... --type=merge -p '{"operation":{"sync":...}}'` to force it.
 
 ### App stays "Progressing" after rollback
-Check pod events: `kubectl describe pod -n demo <pod-name>`. Common issues: image pull backoff (check `ghcr-creds` secret) or ARM64 platform mismatch.
+Check pod events: `kubectl describe pod -n demo <pod-name>`. Common issues: image pull backoff (check `ocir-creds` secret) or ARM64 platform mismatch.
 
 ---
 
