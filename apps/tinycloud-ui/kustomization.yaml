@@ -8,5 +8,5 @@ resources:
   - service.yaml
 
 images:
-  - name: iad.ocir.io/idzghas4xwzv/tinycloud/tinycloud-platform-ui
+  - name: ghcr.io/sasirulk/tinycloud-platform-ui
     newTag: f67788cea249eb0b647e80af115bb89a96b7d32e

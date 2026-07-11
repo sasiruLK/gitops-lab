@@ -8,11 +8,11 @@ spec:
     - namePattern: tinycloud-ui
       images:
         - alias: ui
-          imageName: iad.ocir.io/idzghas4xwzv/tinycloud/tinycloud-platform-ui
+          imageName: ghcr.io/sasirulk/tinycloud-platform-ui
   commonUpdateSettings:
     allowTags: "regexp:^[a-f0-9]{40}$"
     updateStrategy: newest-build
-    pullSecret: pullsecret:argocd/ocir-creds
+    pullSecret: pullsecret:argocd/ghcr-creds
   writeBackConfig:
     method: git
     gitConfig:

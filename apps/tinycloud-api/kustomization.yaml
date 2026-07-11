@@ -10,5 +10,5 @@ resources:
   - rbac.yaml
 
 images:
-  - name: iad.ocir.io/idzghas4xwzv/tinycloud/tinycloud-platform-api
+  - name: ghcr.io/sasirulk/tinycloud-platform-api
     newTag: f67788cea249eb0b647e80af115bb89a96b7d32e
