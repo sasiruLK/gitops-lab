@@ -13,3 +13,4 @@ resources:
   - certificate.yaml
   - network-policies.yaml
   - ocir-creds-reader-rbac.yaml
+  - ingressroute-blog.yaml
