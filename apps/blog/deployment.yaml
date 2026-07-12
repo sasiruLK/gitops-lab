@@ -21,7 +21,7 @@ spec:
         - name: ghcr-creds
       containers:
         - name: blog
-          image: ghcr.io/sasirulk/blog:latest
+          image: ghcr.io/sasirulk/blog:95da67ec41f1a11e1d53e2104d166af1aa3c0b3b
           imagePullPolicy: Always
           ports:
             - containerPort: 80
