@@ -16,6 +16,7 @@ spec:
       labels:
         app.kubernetes.io/name: blog
         app.kubernetes.io/component: blog
+        app.kubernetes.io/part-of: tinycloud-platform
     spec:
       imagePullSecrets:
         - name: ghcr-creds
