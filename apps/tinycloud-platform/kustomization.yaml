@@ -12,5 +12,4 @@ resources:
   - middleware-redirect-https.yaml
   - certificate.yaml
   - network-policies.yaml
-  - ghcr-creds-reader-rbac.yaml
   - ingressroute-blog.yaml
