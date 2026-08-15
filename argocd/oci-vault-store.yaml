@@ -1,0 +1,42 @@
+# Reads secrets from OCI Vault via instance principals.
+#
+# No credential is stored here: the k3s nodes authenticate to OCI as themselves,
+# via the tinycloud-nodes dynamic group and the tinycloud-secrets-read policy.
+# That policy grants read on secret-family only — no writes, no key management.
+apiVersion: external-secrets.io/v1beta1
+kind: ClusterSecretStore
+metadata:
+  name: oci-vault
+  labels:
+    app.kubernetes.io/part-of: tinycloud-platform
+spec:
+  provider:
+    oracle:
+      region: us-ashburn-1
+      vault: ocid1.vault.oc1.iad.ejvibdm5aadrg.abuwcljtqerkpmgm45me5ffh7xpb374epodbrmy7qy7cerwlulwh3jtud2fa
+      principalType: InstancePrincipal
+---
+# Validation only. Deliberately writes to a NEW secret name rather than the
+# cloudflare-api-token that cert-manager is using: if the store is misconfigured
+# this fails harmlessly, instead of emptying the token that renews TLS for every
+# hostname the platform serves. cert-manager is switched over only once this
+# proves it returns the right value.
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: cloudflare-api-token-verify
+  namespace: cert-manager
+  labels:
+    app.kubernetes.io/part-of: tinycloud-platform
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: oci-vault
+    kind: ClusterSecretStore
+  target:
+    name: cloudflare-api-token-verify
+    creationPolicy: Owner
+  data:
+    - secretKey: api-token
+      remoteRef:
+        key: cloudflare-api-token
