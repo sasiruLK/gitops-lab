@@ -1,0 +1,28 @@
+# Run Traefik on every node.
+#
+# Lives in argocd/ because that is the only path the root Application syncs, and
+# having this reconciled matters more than the directory being a perfect fit.
+# It is cluster configuration, not Argo CD configuration.
+#
+# k3s's klipper ServiceLB already listens on 80/443 on both nodes and forwards
+# to the Traefik Service, so both public IPs answer today. But the Traefik pod
+# itself is a single-replica Deployment on k3s-control. If that node fails, the
+# listener on k3s-worker-1 has nothing to forward to until Traefik is rescheduled
+# — roughly five minutes under default eviction timeouts. A load balancer in
+# front would fail over instantly and still find nothing serving.
+#
+# As a DaemonSet there is a live Traefik on each node, so failover is immediate
+# and the load balancer has a healthy backend throughout. Cost is one extra pod
+# at ~56Mi.
+#
+# k3s owns the Traefik chart; HelmChartConfig is the supported way to override
+# its values. Deleting this file reverts to the packaged Deployment.
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    deployment:
+      kind: DaemonSet
