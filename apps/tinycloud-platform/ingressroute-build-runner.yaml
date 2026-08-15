@@ -1,0 +1,33 @@
+# Routes GitHub Actions build callbacks straight to the coordinator.
+#
+# The default tinycloud.sasiru.lk route sends everything to oauth2-proxy, which
+# would answer a machine caller with a login redirect. GitHub's runners cannot
+# complete an OAuth flow, so /v1/runner/* must bypass it.
+#
+# Traefik picks the rule with the highest priority, and equal priorities are
+# resolved by rule length, so this is set explicitly rather than left to chance.
+# It must stay above the catch-all Host() rule in ingressroute.yaml.
+#
+# Bypassing oauth2-proxy does NOT mean unauthenticated: the coordinator requires
+# `Authorization: Bearer $BUILD_COORDINATOR_TOKEN` on every /v1 route.
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: build-runner-callback
+  namespace: tinycloud
+  labels:
+    app.kubernetes.io/name: build-coordinator
+    app.kubernetes.io/part-of: tinycloud-platform
+    app.kubernetes.io/component: ingress
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`tinycloud.sasiru.lk`) && PathPrefix(`/v1/runner`)
+      kind: Rule
+      priority: 100
+      services:
+        - name: build-coordinator
+          port: 8090
+  tls:
+    secretName: tinycloud-platform-tls

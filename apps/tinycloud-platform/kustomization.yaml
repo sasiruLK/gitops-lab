@@ -13,3 +13,5 @@ resources:
   - certificate.yaml
   - network-policies.yaml
   - ingressroute-blog.yaml
+  - build-coordinator-endpoint.yaml
+  - ingressroute-build-runner.yaml

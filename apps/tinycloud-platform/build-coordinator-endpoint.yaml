@@ -1,0 +1,44 @@
+# Publishes the build coordinator's runner callback API to the internet.
+#
+# The coordinator runs as a systemd unit on k3s-worker-1 (10.0.0.73:8090), not
+# as a pod, so this Service has no selector and its backend is declared by hand.
+#
+# GitHub Actions executes builds and reports progress back over /v1/runner/*.
+# Port 8090 is not open to the internet (only within the VCN), so without this
+# route those callbacks cannot land and every build would sit at "queued".
+#
+# Only /v1/runner/* is published — not /v1/builds — so the public surface is
+# limited to the callback endpoints. They authenticate with
+# BUILD_COORDINATOR_TOKEN as Bearer, enforced by the coordinator itself.
+apiVersion: v1
+kind: Service
+metadata:
+  name: build-coordinator
+  namespace: tinycloud
+  labels:
+    app.kubernetes.io/name: build-coordinator
+    app.kubernetes.io/part-of: tinycloud-platform
+spec:
+  ports:
+    - name: http
+      port: 8090
+      targetPort: 8090
+      protocol: TCP
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: build-coordinator
+  namespace: tinycloud
+  labels:
+    kubernetes.io/service-name: build-coordinator
+    app.kubernetes.io/part-of: tinycloud-platform
+addressType: IPv4
+ports:
+  - name: http
+    port: 8090
+    protocol: TCP
+endpoints:
+  # k3s-worker-1. If the coordinator ever moves host, change this address.
+  - addresses:
+      - "10.0.0.73"
