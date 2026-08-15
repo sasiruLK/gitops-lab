@@ -1,0 +1,44 @@
+# argocd-image-updater, brought under GitOps.
+#
+# It has been running since 2026-07-11 but was installed by hand and existed in
+# no repository, so a rebuild from the bootstrap scripts would have produced a
+# cluster that silently never updated any image.
+#
+# Points at the upstream manifest that produced the running install: v1.2.2,
+# namespace argocd, image quay.io/argoprojlabs/argocd-image-updater:v1.2.2 —
+# all verified against the live deployment before adoption, so this takes
+# ownership of existing resources rather than creating a second copy.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd-image-updater
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: tinycloud-platform
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/argoproj-labs/argocd-image-updater
+    targetRevision: v1.2.2
+    path: config
+    directory:
+      recurse: false
+      include: 'install.yaml'
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      # Not pruned: this adopts a running controller, and a transient failure to
+      # read the upstream repo should never delete the thing that keeps every
+      # image current.
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m

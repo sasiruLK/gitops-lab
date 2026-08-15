@@ -1,0 +1,54 @@
+# Root application — the app-of-apps entry point.
+#
+# Everything in argocd/ was previously applied by hand with kubectl. That meant
+# the cluster contained resources described in no repository: argocd-image-updater
+# ran for a month with no manifest anywhere, and the ClusterSecretStore backing
+# External Secrets was created interactively. A rebuild from the bootstrap
+# scripts would not have restored either.
+#
+# This Application syncs argocd/ so every Application, ApplicationSet,
+# ImageUpdater, ClusterSecretStore and ExternalSecret is declared and reconciled.
+# It includes itself, so changing the root is also a git operation.
+#
+# recurse is false deliberately: argocd/_template/ holds files containing
+# {{APP_NAME}} placeholders which are not valid Kubernetes manifests, and
+# recursing would fail every sync.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: tinycloud-platform
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/sasiruLK/gitops-lab.git
+    targetRevision: main
+    path: argocd
+    directory:
+      recurse: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      # prune is OFF, deliberately.
+      #
+      # With prune enabled, deleting a file here deletes the Application, and
+      # Argo CD's resources-finalizer then cascades that into deleting the live
+      # workloads it manages. A single bad push or a bad rebase would take down
+      # the platform. Removing an app is therefore a two-step operation: delete
+      # the file, then delete the Application explicitly.
+      #
+      # Turn this on only once you are comfortable with that blast radius.
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
