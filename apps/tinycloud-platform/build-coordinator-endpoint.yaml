@@ -42,3 +42,9 @@ endpoints:
   # k3s-worker-1. If the coordinator ever moves host, change this address.
   - addresses:
       - "10.0.0.73"
+    # Declared explicitly: the API server materialises a `conditions` field on
+    # every EndpointSlice, so omitting it leaves Argo CD permanently OutOfSync
+    # against its own manifest. There is no controller behind a selector-less
+    # Service to report readiness, so assert it here.
+    conditions:
+      ready: true
