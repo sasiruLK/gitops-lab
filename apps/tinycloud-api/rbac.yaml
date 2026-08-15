@@ -22,22 +22,6 @@ rules:
     resources: ["applications"]
     verbs: ["get", "list", "watch", "patch"]
 ---
-# Role in demo namespace for pod logs and deployments
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: tinycloud-api-logs
-  namespace: demo
-  labels:
-    app.kubernetes.io/part-of: tinycloud-platform
-rules:
-  - apiGroups: [""]
-    resources: ["pods", "pods/log"]
-    verbs: ["get", "list"]
-  - apiGroups: ["apps"]
-    resources: ["deployments"]
-    verbs: ["get", "list"]
----
 # RoleBinding in argocd namespace
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -53,21 +37,4 @@ subjects:
 roleRef:
   kind: Role
   name: tinycloud-api-argocd
-  apiGroup: rbac.authorization.k8s.io
----
-# RoleBinding in demo namespace
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: tinycloud-api-logs
-  namespace: demo
-  labels:
-    app.kubernetes.io/part-of: tinycloud-platform
-subjects:
-  - kind: ServiceAccount
-    name: tinycloud-api
-    namespace: tinycloud
-roleRef:
-  kind: Role
-  name: tinycloud-api-logs
   apiGroup: rbac.authorization.k8s.io
