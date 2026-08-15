@@ -16,15 +16,18 @@ spec:
       vault: ocid1.vault.oc1.iad.ejvibdm5aadrg.abuwcljtqerkpmgm45me5ffh7xpb374epodbrmy7qy7cerwlulwh3jtud2fa
       principalType: InstancePrincipal
 ---
-# Validation only. Deliberately writes to a NEW secret name rather than the
-# cloudflare-api-token that cert-manager is using: if the store is misconfigured
-# this fails harmlessly, instead of emptying the token that renews TLS for every
-# hostname the platform serves. cert-manager is switched over only once this
-# proves it returns the right value.
+# cert-manager's DNS01 token, now sourced from OCI Vault rather than created by
+# hand during bootstrap. Verified before adoption: a temporary copy was synced to
+# a separate name and hash-compared against the original, so this took ownership
+# of a secret already known to hold the identical value.
+#
+# If ESO or the Vault API is unavailable, the existing Secret keeps working —
+# refresh stops, the value does not disappear. Rotating in Vault propagates here
+# within refreshInterval.
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
-  name: cloudflare-api-token-verify
+  name: cloudflare-api-token
   namespace: cert-manager
   labels:
     app.kubernetes.io/part-of: tinycloud-platform
@@ -34,7 +37,7 @@ spec:
     name: oci-vault
     kind: ClusterSecretStore
   target:
-    name: cloudflare-api-token-verify
+    name: cloudflare-api-token
     creationPolicy: Owner
   data:
     - secretKey: api-token
