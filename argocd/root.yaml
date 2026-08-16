@@ -10,9 +10,19 @@
 # ImageUpdater, ClusterSecretStore and ExternalSecret is declared and reconciled.
 # It includes itself, so changing the root is also a git operation.
 #
-# recurse is false deliberately: argocd/_template/ holds files containing
-# {{APP_NAME}} placeholders which are not valid Kubernetes manifests, and
-# recursing would fail every sync.
+# This directory is read non-recursively, which matters: argocd/_template/
+# holds files containing {{APP_NAME}} placeholders that are not valid
+# Kubernetes manifests, and recursing would fail every sync.
+#
+# That is the default, and it is deliberately left implicit. Writing it out as
+#
+#   directory:
+#     recurse: false
+#
+# reads better but cannot work: false is the zero value, so the API server
+# drops the whole directory block on write. Git then permanently declares a
+# field the live object can never have, and this Application -- which manages
+# itself -- reported OutOfSync forever while syncing successfully every time.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -26,8 +36,6 @@ spec:
     repoURL: https://github.com/sasiruLK/gitops-lab.git
     targetRevision: main
     path: argocd
-    directory:
-      recurse: false
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
