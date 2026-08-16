@@ -42,10 +42,14 @@ spec:
               port: http
             initialDelaySeconds: 15
             periodSeconds: 10
+          # Requests sized near real usage, not far below it. The scheduler packs
+          # by requests alone, so a 4x gap between request and limit let it keep
+          # placing pods on a node that reported 11% memory while actually being
+          # close to full.
           resources:
             requests:
-              cpu: 50m
-              memory: 64Mi
+              cpu: 100m
+              memory: 128Mi
             limits:
               cpu: 250m
               memory: 256Mi
