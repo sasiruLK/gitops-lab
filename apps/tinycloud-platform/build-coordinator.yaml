@@ -128,12 +128,14 @@ spec:
           type: RuntimeDefault
       containers:
         - name: build-coordinator
-          # Image Updater pins this to a 40-character commit SHA and writes the
-          # override to .argocd-source-tinycloud-platform.yaml — see
-          # argocd/imageupdater-tinycloud-platform.yaml. Pin it explicitly at
-          # cutover so the first pod is a known build rather than whatever
-          # `latest` points at.
-          image: ghcr.io/sasirulk/tinycloud-platform-build-coordinator:latest
+          # Pinned to a known build rather than `latest`, so the pod that first
+          # opens the migrated database is a specific, reviewable commit.
+          # d424a29 is tinycloud-platform's "publish the coordinator image from
+          # CI", the first build this image ever had; verify the tag still exists
+          # in GHCR before cutover. From then on Image Updater advances this and
+          # writes the override to .argocd-source-tinycloud-platform.yaml — see
+          # argocd/imageupdater-tinycloud-platform.yaml.
+          image: ghcr.io/sasirulk/tinycloud-platform-build-coordinator:d424a29558820f618bfddee32a3b4ac52712153e
           imagePullPolicy: Always
           ports:
             - containerPort: 8090
