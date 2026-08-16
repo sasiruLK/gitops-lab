@@ -1,6 +1,29 @@
+# The tinycloud namespace, declared here and nowhere else.
+#
+# apps/tinycloud-platform/ used to carry a second copy of this object with a
+# different set of labels. Only one of the two was ever listed in a
+# kustomization, so the duplicate sat inert and harmless — until it was listed,
+# at which point both Applications owned the same Namespace and each sync
+# reverted the other's labels. Pod Security enforcement flipped on and off
+# every few minutes.
+#
+# Two Applications managing one object is always this bug. If the platform app
+# needs a label here, add it to this file.
 apiVersion: v1
 kind: Namespace
 metadata:
   name: tinycloud
   labels:
     app.kubernetes.io/part-of: tinycloud-platform
+
+    # Pod Security Standards, enforced.
+    #
+    # Adding this rejects any pod that asks for privilege it does not need —
+    # root, host namespaces, unconfined seccomp. Existing pods are not
+    # re-evaluated, so a violating pod keeps running until something recreates
+    # it and then fails to start. Check before changing this:
+    #   kubectl label ns tinycloud \
+    #     pod-security.kubernetes.io/enforce=restricted --dry-run=server
+    # which lists every pod that would be rejected, without changing anything.
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest

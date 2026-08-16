@@ -3,9 +3,9 @@ kind: Kustomization
 namespace: tinycloud
 
 resources:
-  # Was never listed, so the Pod Security labels it declares have never been
-  # applied — the live namespace has had no enforcement at all.
-  - namespace.yaml
+  # The Namespace is not listed here. It belongs to apps/tinycloud-api/, which
+  # has always declared it. Listing a second copy made both Applications owners
+  # of the same object and they overwrote each other's labels on every sync.
   - oauth2-proxy.yaml
   - nginx-proxy.yaml
   - ingressroute.yaml
