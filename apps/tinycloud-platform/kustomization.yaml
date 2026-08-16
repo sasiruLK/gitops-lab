@@ -3,10 +3,10 @@ kind: Kustomization
 namespace: tinycloud
 
 resources:
-  # Listed only until the Prune=false annotation it carries is live; see the
-  # header of namespace.yaml. It then gets deleted and apps/tinycloud-api/
-  # becomes the sole owner.
-  - namespace.yaml
+  # The Namespace is deliberately not here. It is declared once, in
+  # apps/tinycloud-api/namespace.yaml. Declaring it in both apps made them
+  # shared owners of one object: Argo CD raised SharedResourceWarning and
+  # whichever app did not hold the tracking-id sat permanently OutOfSync.
   - oauth2-proxy.yaml
   - nginx-proxy.yaml
   - ingressroute.yaml
