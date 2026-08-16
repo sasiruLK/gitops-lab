@@ -164,6 +164,18 @@ spec:
             - name: IMAGE_PREFIX
               value: "ghcr.io/sasirulk"
 
+            # Ships build events and log lines to OCI Logging as a second copy
+            # of build history. The primary record is the SQLite file on this
+            # node's local-path volume, which does not survive the node being
+            # rebuilt.
+            #
+            # Authenticates as the instance via the tinycloud-nodes dynamic
+            # group, which the tinycloud-logging-write policy already grants
+            # `use log-content`. Unset this and shipping is disabled; builds are
+            # unaffected either way.
+            - name: OCI_LOG_ID
+              value: "ocid1.log.oc1.iad.amaaaaaaul44qqiabyoshikmcyde65m4bvrc3otrzievjuext43s2yjc5kbq"
+
             # Credentials come from the Secrets already in this namespace, not
             # from a hand-created build-coordinator-env copied out of
             # /etc/tinycloud/build-coordinator.env on the node.
