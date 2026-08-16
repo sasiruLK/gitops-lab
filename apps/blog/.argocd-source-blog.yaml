@@ -1,3 +1,3 @@
 kustomize:
   images:
-  - ghcr.io/sasirulk/blog:6b8019ade26714f55b6e9f8d789d2d8f4444591a
+  - ghcr.io/sasirulk/blog:cb52bbedf1aaae9476508b2b7cd9f316e390d127
