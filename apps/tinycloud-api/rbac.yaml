@@ -38,3 +38,44 @@ roleRef:
   kind: Role
   name: tinycloud-api-argocd
   apiGroup: rbac.authorization.k8s.io
+---
+# Read access to workloads in the tinycloud namespace.
+#
+# The API needs this to show pods and stream logs for apps that run here —
+# blog and the platform's own components. An earlier Role granted it against a
+# `demo` namespace that had been deleted, which broke every sync; removing that
+# fixed the sync but left the API with no pod access at all, so /apps/<name>
+# answered "No pods found for application" for everything in this namespace.
+#
+# replicasets is included for the resource tree, which walks
+# Deployment -> ReplicaSet -> Pod via ownerReferences.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: tinycloud-api-workloads
+  namespace: tinycloud
+  labels:
+    app.kubernetes.io/part-of: tinycloud-platform
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log"]
+    verbs: ["get", "list"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tinycloud-api-workloads
+  namespace: tinycloud
+  labels:
+    app.kubernetes.io/part-of: tinycloud-platform
+subjects:
+  - kind: ServiceAccount
+    name: tinycloud-api
+    namespace: tinycloud
+roleRef:
+  kind: Role
+  name: tinycloud-api-workloads
+  apiGroup: rbac.authorization.k8s.io
