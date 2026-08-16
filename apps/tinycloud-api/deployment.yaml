@@ -46,8 +46,15 @@ spec:
                 secretKeyRef:
                   name: github-pat
                   key: token
+            # In-cluster Service DNS, not the node IP 10.0.0.73 this used to
+            # hardcode. The Service name and port are unchanged by the move of
+            # the coordinator from a systemd unit to a pod, so this address is
+            # correct both before and after that cutover: today it resolves to
+            # the selector-less Service whose EndpointSlice names the node,
+            # afterwards to the coordinator pod. That is why it is safe to change
+            # ahead of the cutover rather than during it.
             - name: BUILD_COORDINATOR_URL
-              value: "http://10.0.0.73:8090"
+              value: "http://build-coordinator.tinycloud.svc.cluster.local:8090"
             - name: BUILD_COORDINATOR_TOKEN
               valueFrom:
                 secretKeyRef:

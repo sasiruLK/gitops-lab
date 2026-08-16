@@ -1,0 +1,252 @@
+# The build coordinator, as a pod instead of a systemd unit.
+#
+# It ran as `tinycloud-build-coordinator.service` on k3s-worker-1, updated by
+# cross-compiling on a laptop, scp'ing the binary and restarting the unit. Two
+# incidents on 2026-08-15 came from that: a stale binary answered 404 for an
+# endpoint that existed in main (users saw a 502), and a redeploy was forgotten
+# outright. Everything else on this platform deploys itself on push; this makes
+# the coordinator match.
+#
+# NOT ACTIVE YET. This file is deliberately not listed in kustomization.yaml —
+# see the commented block there. Enabling it is the cutover, and the SQLite
+# database must be seeded into the volume first or the coordinator starts with
+# an empty build history. Follow the runbook before uncommenting.
+#
+# ── Where the database lives ────────────────────────────────────────────────
+#
+# All build and deploy history is a single SQLite file, today at
+# /var/lib/tinycloud-build-coordinator/builds.db on k3s-worker-1.
+#
+# A hostPath volume reusing that file in place would have been simplest, but it
+# is not available here: the tinycloud namespace enforces the `restricted` Pod
+# Security Standard (see namespace.yaml), and both `baseline` and `restricted`
+# forbid hostPath volumes outright. A pod declaring one is rejected by admission
+# — it does not start and does not fall back. Relaxing the namespace to
+# `privileged` to allow it would drop the security floor for oauth2-proxy,
+# nginx-proxy and every other workload in here, which is far too much blast
+# radius for one volume.
+#
+# So: a PersistentVolumeClaim on k3s's `local-path` provisioner, seeded with a
+# copy of the existing file during cutover.
+#
+# ── What happens if this pod is scheduled on the other node ─────────────────
+#
+# `local-path` storage is node-local. The PersistentVolume is a directory on one
+# specific node's disk, and the claim's nodeAffinity binds it there permanently
+# after first use. If this pod were ever scheduled onto k3s-control instead:
+#
+#   - Before the claim is bound: a NEW empty directory is created on that node,
+#     the coordinator migrates a fresh schema into it, and /v1/builds returns an
+#     empty list. Every build and deploy record is invisible. The old data is not
+#     destroyed — it is still sitting on k3s-worker-1 — but the platform behaves
+#     as though the history never existed.
+#   - After the claim is bound to k3s-worker-1: the pod does not start at all. It
+#     stays Pending with "node(s) had volume node affinity conflict", which is
+#     the safer of the two failures and the reason the claim is bound early.
+#
+# The nodeSelector below pins the pod to k3s-worker-1 so neither happens. Do not
+# remove it. If that node is ever rebuilt, the database must be copied to the new
+# one first — this claim will not follow it.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: build-coordinator-data
+  namespace: tinycloud
+  labels:
+    app.kubernetes.io/name: build-coordinator
+    app.kubernetes.io/part-of: tinycloud-platform
+  annotations:
+    # Never prune this claim. Deleting it deletes the PersistentVolume, and
+    # local-path's reclaim policy wipes the backing directory — which is the
+    # entire build history. Removing this file from git, a bad rebase or a
+    # mistaken `argocd app delete` should not be able to destroy it. Removing the
+    # claim has to be a deliberate manual act.
+    argocd.argoproj.io/sync-options: Prune=false
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      # The live database is a few megabytes of job rows and build logs. 1Gi is
+      # generous; local-path does not enforce the size anyway, it is a directory
+      # on the node's filesystem.
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: build-coordinator
+  namespace: tinycloud
+  labels:
+    app.kubernetes.io/name: build-coordinator
+    app.kubernetes.io/component: build-coordinator
+    app.kubernetes.io/part-of: tinycloud-platform
+    app.kubernetes.io/managed-by: argocd
+spec:
+  replicas: 1
+  strategy:
+    # Recreate, NOT RollingUpdate.
+    #
+    # A rolling update briefly runs the old and new pods together, and both would
+    # open the same SQLite file on the same volume. SQLite tolerates concurrent
+    # readers, not two independent writers holding their own locks across a
+    # ReadWriteOnce mount — the outcome is a corrupted database or "database is
+    # locked" errors mid-build. Recreate stops the old pod fully before starting
+    # the new one, at the cost of a few seconds of downtime per deploy. That is
+    # the correct trade for a queue that already tolerates the coordinator being
+    # briefly unreachable.
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: build-coordinator
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: build-coordinator
+        app.kubernetes.io/component: build-coordinator
+        app.kubernetes.io/part-of: tinycloud-platform
+    spec:
+      # Pins the pod to the node holding the database. See the long note above
+      # the PersistentVolumeClaim for what happens if this is removed.
+      nodeSelector:
+        kubernetes.io/hostname: k3s-worker-1
+      imagePullSecrets:
+        - name: ghcr-creds
+      priorityClassName: platform
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        # The image runs as uid 65532 (distroless nonroot) but local-path creates
+        # the volume directory owned by root. fsGroup makes the kubelet chown the
+        # mounted volume to this group so SQLite can create its journal file
+        # alongside the database. Without it the coordinator fails at startup
+        # with "attempt to write a readonly database".
+        fsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: build-coordinator
+          # Image Updater pins this to a 40-character commit SHA and writes the
+          # override to .argocd-source-tinycloud-platform.yaml — see
+          # argocd/imageupdater-tinycloud-platform.yaml. Pin it explicitly at
+          # cutover so the first pod is a known build rather than whatever
+          # `latest` points at.
+          image: ghcr.io/sasirulk/tinycloud-platform-build-coordinator:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8090
+              name: http
+          env:
+            - name: PORT
+              value: "8090"
+            # Points into the mounted volume, not the systemd unit's
+            # /var/lib/tinycloud-build-coordinator path. The cutover copies the
+            # existing file to exactly this location.
+            - name: BUILD_COORDINATOR_DB
+              value: "/data/builds.db"
+            - name: BUILD_WORKFLOW_REPO
+              value: "sasiruLK/tinycloud-platform"
+            # The address GitHub Actions runners call back on. It must stay
+            # publicly resolvable: it is baked into each dispatched workflow run,
+            # and a wrong value leaves every build stuck at "queued" with no
+            # error. Traefik routes /v1/runner/* here via
+            # ingressroute-build-runner.yaml.
+            - name: BUILD_COORDINATOR_PUBLIC_URL
+              value: "https://tinycloud.sasiru.lk"
+            - name: IMAGE_PREFIX
+              value: "ghcr.io/sasirulk"
+          envFrom:
+            # Credentials only: BUILD_COORDINATOR_TOKEN, GITHUB_TOKEN,
+            # GITHUB_USERNAME. Created by hand from the values already in
+            # /etc/tinycloud/build-coordinator.env — never committed. Template
+            # and exact procedure:
+            # tinycloud-platform/deploy/build-coordinator-secret-template.yaml
+            #
+            # BUILD_COORDINATOR_TOKEN must match the `token` key of the existing
+            # build-coordinator-token Secret that tinycloud-api authenticates
+            # with, or every API call to the coordinator returns 401.
+            - secretRef:
+                name: build-coordinator-env
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          # /health is registered outside the authenticated /v1 group, so probes
+          # do not need the bearer token.
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8090
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8090
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: build-coordinator-data
+        # readOnlyRootFilesystem is on, and SQLite wants a writable temp
+        # directory for its own scratch files.
+        - name: tmp
+          emptyDir: {}
+---
+# Replaces the hand-written Service + EndpointSlice pair in
+# build-coordinator-endpoint.yaml.
+#
+# That pair existed because the coordinator was not a pod: the Service had no
+# selector and its backend address (10.0.0.73) was declared by hand so GitHub
+# Actions could reach /v1/runner/* through Traefik. Now that a pod exists, this
+# is an ordinary selector-based Service and the endpoints are maintained by the
+# endpoints controller.
+#
+# The name and port are unchanged on purpose. ingressroute-build-runner.yaml
+# routes to `build-coordinator:8090` and tinycloud-api dials the same DNS name,
+# so neither has to change when the backend moves from node to pod.
+#
+# IMPORTANT at cutover: the old hand-written EndpointSlice is a separate object
+# named `build-coordinator`, and it does not disappear just because this Service
+# gains a selector. Until it is deleted, it coexists with the controller-managed
+# slice and Traefik load-balances between the pod and the now-stopped systemd
+# unit — roughly half of all runner callbacks fail. Delete it explicitly during
+# cutover; do not rely on Argo's prune ordering to do it in time.
+apiVersion: v1
+kind: Service
+metadata:
+  name: build-coordinator
+  namespace: tinycloud
+  labels:
+    app.kubernetes.io/name: build-coordinator
+    app.kubernetes.io/component: build-coordinator
+    app.kubernetes.io/part-of: tinycloud-platform
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: build-coordinator
+  ports:
+    - name: http
+      port: 8090
+      targetPort: 8090
+      protocol: TCP

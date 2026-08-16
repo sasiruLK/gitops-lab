@@ -304,3 +304,85 @@ spec:
       ports:
         - protocol: TCP
           port: 8080
+---
+# ── Build coordinator ────────────────────────────────────────────────────────
+#
+# These three policies select pods labelled app.kubernetes.io/name:
+# build-coordinator, which do not exist yet — the coordinator is still a systemd
+# unit on k3s-worker-1, reached over the node network where NetworkPolicy does
+# not apply. They are inert until build-coordinator.yaml is enabled in
+# kustomization.yaml, and they are here first on purpose: a pod that starts
+# before its policies exist is unreachable behind the namespace's default-deny
+# and every build fails while someone works out why.
+#
+# GitHub Actions callbacks arrive on /v1/runner/*, routed by
+# ingressroute-build-runner.yaml. allow-traefik-to-platform only opens 4180 and
+# 8080, so without this the coordinator's 8090 stays closed to Traefik and every
+# build sits at "queued".
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-traefik-to-build-coordinator
+  namespace: tinycloud
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: build-coordinator
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: traefik
+      ports:
+        - protocol: TCP
+          port: 8090
+---
+# tinycloud-api queues builds and reads history over BUILD_COORDINATOR_URL. Its
+# egress side is already allowed by allow-api-egress, which opens port 8090; this
+# is the matching ingress rule on the coordinator, which had no equivalent while
+# the coordinator lived off the pod network.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-api-to-build-coordinator
+  namespace: tinycloud
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: build-coordinator
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: tinycloud-api
+      ports:
+        - protocol: TCP
+          port: 8090
+---
+# The coordinator dispatches builds by POSTing to
+# api.github.com/repos/{repo}/dispatches. The namespace denies egress by default,
+# so without this the dispatcher fails on every build with a connection timeout
+# and jobs stay queued. DNS is already covered for all pods by
+# allow-dns-egress.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-build-coordinator-egress
+  namespace: tinycloud
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: build-coordinator
+  policyTypes:
+    - Egress
+  egress:
+    - ports:
+        - protocol: TCP
+          port: 443

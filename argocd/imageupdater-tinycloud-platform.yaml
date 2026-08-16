@@ -1,0 +1,39 @@
+# Keeps the build coordinator's image current, the same way tinycloud-api and
+# tinycloud-ui are kept current.
+#
+# This is the point of moving the coordinator into the cluster: it was the last
+# component whose deploy was a manual cross-compile, scp and systemctl restart,
+# and the binary on the node drifted behind main twice in one day.
+#
+# The tinycloud-platform Application also holds oauth2-proxy and nginx-proxy,
+# which are pinned upstream images and deliberately not tracked here — only the
+# coordinator is listed.
+#
+# Inert until build-coordinator.yaml is enabled in
+# apps/tinycloud-platform/kustomization.yaml: with no container using this image,
+# Image Updater finds nothing to update and does nothing.
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: tinycloud-platform
+  namespace: argocd
+spec:
+  commonUpdateSettings:
+    updateStrategy: newest-build
+    # Matches the raw 40-character commit SHA tag pushed by
+    # .github/workflows/build-coordinator.yaml. It deliberately excludes
+    # `latest`, which the same workflow also pushes — tracking a moving tag
+    # would give Argo nothing to pin and no way to say which commit is running.
+    allowTags: "regexp:^[a-f0-9]{40}$"
+    pullSecret: pullsecret:argocd/ghcr-creds
+
+  writeBackConfig:
+    method: git
+    gitConfig:
+      branch: main
+
+  applicationRefs:
+    - namePattern: tinycloud-platform
+      images:
+        - alias: coordinator
+          imageName: ghcr.io/sasirulk/tinycloud-platform-build-coordinator
