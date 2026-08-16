@@ -52,11 +52,3 @@ spec:
         duration: 10s
         factor: 2
         maxDuration: 3m
-  # External Secrets writes refreshTime and conditions into the ExternalSecret's
-  # status on every sync interval. Argo reads that as drift, so root sat
-  # permanently OutOfSync over a field the controller owns and we do not manage.
-  ignoreDifferences:
-    - group: external-secrets.io
-      kind: ExternalSecret
-      jsonPointers:
-        - /status

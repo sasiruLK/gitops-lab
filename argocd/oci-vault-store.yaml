@@ -39,7 +39,16 @@ spec:
   target:
     name: cloudflare-api-token
     creationPolicy: Owner
+    # Written out rather than left to the CRD's defaulting. Argo compares the
+    # manifest against the live object, and every field the CRD fills in that
+    # git omits reads as drift — which is what kept root permanently OutOfSync.
+    # An earlier attempt to silence it with ignoreDifferences on /status missed,
+    # because the difference is in .spec, not .status.
+    deletionPolicy: Retain
   data:
     - secretKey: api-token
       remoteRef:
         key: cloudflare-api-token
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
