@@ -41,6 +41,12 @@ spec:
             capabilities:
               drop:
                 - ALL
+            # Required by the restricted Pod Security Standard. Without it this
+            # pod is admitted today but would be REJECTED on next recreation once
+            # the namespace enforces restricted — a failure that only appears at
+            # the next deploy, not when the policy is applied.
+            seccompProfile:
+              type: RuntimeDefault
           livenessProbe:
             httpGet:
               path: /

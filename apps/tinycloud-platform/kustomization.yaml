@@ -3,6 +3,9 @@ kind: Kustomization
 namespace: tinycloud
 
 resources:
+  # Was never listed, so the Pod Security labels it declares have never been
+  # applied — the live namespace has had no enforcement at all.
+  - namespace.yaml
   - oauth2-proxy.yaml
   - nginx-proxy.yaml
   - ingressroute.yaml
