@@ -37,3 +37,14 @@ resources:
   # keeps its name and port, so the IngressRoute above still resolves.
   - build-coordinator-endpoint.yaml
   # - build-coordinator.yaml
+
+configMapGenerator:
+  # The sign-in and error pages oauth2-proxy serves. Generated rather than
+  # written as a ConfigMap so the name gets a content hash: editing a template
+  # then produces a new object name, which rolls the deployment. Without that
+  # the pages change in the cluster but the running process keeps serving the
+  # copies it read at startup.
+  - name: oauth2-proxy-templates
+    files:
+      - templates/sign_in.html
+      - templates/error.html

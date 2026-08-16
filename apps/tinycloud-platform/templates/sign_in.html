@@ -1,0 +1,209 @@
+{{define "sign_in.html"}}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sign in · tinycloud</title>
+    <link rel="icon" href="data:,">
+
+    <!--
+      This page replaces oauth2-proxy's default Bulma template. It is the first
+      thing seen after signing out and the only thing seen by anyone who is not
+      the owner of this tenancy, so it carries the console's own palette.
+
+      No external stylesheet: the default pulls /oauth2/static/css/bulma.min.css,
+      which is one more request that has to succeed before a login page is
+      legible. Everything here is inline.
+
+      The form is the part that matters. Its action, the hidden rd field and the
+      fragment-preserving script below are lifted from the upstream v7.6.0
+      template unchanged -- restyle them, do not rewrite them.
+    -->
+    <style>
+      :root {
+        --bg: #0d1117;
+        --surface: #151b23;
+        --line: #2a3440;
+        --ink: #e6edf3;
+        --ink-2: #b6c2cf;
+        --muted: #7d8b9a;
+        --accent: #f0b429;
+        --crit: #f85149;
+        --crit-wash: #2d1618;
+        --on-accent: #0d1117;
+      }
+
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #f6f8fa;
+          --surface: #ffffff;
+          --line: #d3dae1;
+          --ink: #1c2128;
+          --ink-2: #3d4753;
+          --muted: #64707d;
+          --accent: #9a6700;
+          --crit: #cf222e;
+          --crit-wash: #fce8e9;
+          --on-accent: #ffffff;
+        }
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .card {
+        width: 100%;
+        max-width: 22rem;
+        padding: 1.75rem;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface);
+        animation: rise 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+
+      @keyframes rise {
+        from { opacity: 0; transform: translateY(6px); }
+        to   { opacity: 1; transform: none; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .card { animation: none; }
+      }
+
+      .brand {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        color: var(--accent);
+      }
+
+      h1 {
+        margin: 0.75rem 0 0;
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--ink);
+      }
+
+      p.lede {
+        margin: 0.4rem 0 0;
+        font-size: 0.8125rem;
+        line-height: 1.6;
+        color: var(--muted);
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+
+      form { margin: 1.5rem 0 0; }
+
+      button {
+        width: 100%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.6rem 0.75rem;
+        border: 0;
+        border-radius: 6px;
+        background: var(--accent);
+        color: var(--on-accent);
+        font-family: inherit;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.15s ease;
+      }
+
+      button:hover { opacity: 0.9; }
+
+      button:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+
+      .alert {
+        margin: 1rem 0 0;
+        padding: 0.5rem 0.625rem;
+        border: 1px solid var(--crit);
+        border-radius: 6px;
+        background: var(--crit-wash);
+        color: var(--crit);
+        font-size: 0.75rem;
+      }
+
+      footer {
+        font-size: 0.6875rem;
+        color: var(--muted);
+      }
+
+      footer a { color: var(--muted); }
+    </style>
+  </head>
+
+  <body>
+    <div class="card">
+      {{ if .LogoData }}<div>{{.LogoData}}</div>{{ end }}
+
+      <span class="brand">tinycloud</span>
+      <h1>Ops console</h1>
+      <p class="lede">
+        {{ if .SignInMessage }}{{.SignInMessage}}{{ else }}Access is restricted to a single GitHub account.{{ end }}
+      </p>
+
+      <form method="GET" action="{{.ProxyPrefix}}/start">
+        <input type="hidden" name="rd" value="{{.Redirect}}">
+        <button type="submit">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/>
+          </svg>
+          Sign in with {{.ProviderName}}
+        </button>
+      </form>
+
+      {{ if eq .StatusCode 400 401 }}
+      <div class="alert">
+        {{ if eq .StatusCode 400 }}{{.StatusCode}}: Username cannot be empty{{ else }}{{.StatusCode}}: Invalid username or password{{ end }}
+      </div>
+      {{ end }}
+    </div>
+
+    <footer>
+      {{ if eq .Footer "-" }}{{ else if eq .Footer "" }}
+      <p>Secured with <a href="https://github.com/oauth2-proxy/oauth2-proxy#oauth2_proxy">OAuth2 Proxy</a> {{.Version}}</p>
+      {{ else }}
+      <p>{{.Footer}}</p>
+      {{ end }}
+    </footer>
+
+    <script>
+      // Upstream behaviour, kept verbatim: the URL fragment never reaches the
+      // server, so it is folded into rd here or it is lost across the redirect.
+      if (window.location.hash) {
+        (function() {
+          var inputs = document.getElementsByName('rd');
+          for (var i = 0; i < inputs.length; i++) {
+            var idx = inputs[i].value.indexOf('#');
+            if (idx >= 0) {
+              inputs[i].value = inputs[i].value.substr(0, idx);
+            }
+            inputs[i].value += window.location.hash;
+          }
+        })();
+      }
+    </script>
+  </body>
+</html>
+{{end}}

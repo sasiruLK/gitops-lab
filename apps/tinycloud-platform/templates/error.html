@@ -1,0 +1,190 @@
+{{define "error.html"}}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{.StatusCode}} {{.Title}} · tinycloud</title>
+    <link rel="icon" href="data:,">
+
+    <!--
+      The companion to sign_in.html. Worth restyling rather than leaving on the
+      default: this is the page a failed callback lands on, so it is what gets
+      read while login is broken. It keeps the upstream "Sign in" and "Go back"
+      actions, and shows the request ID without hiding it behind a toggle -- it
+      is the one detail that makes a failure searchable in the logs.
+    -->
+    <style>
+      :root {
+        --bg: #0d1117;
+        --surface: #151b23;
+        --line: #2a3440;
+        --ink: #e6edf3;
+        --ink-2: #b6c2cf;
+        --muted: #7d8b9a;
+        --accent: #f0b429;
+        --crit: #f85149;
+        --on-accent: #0d1117;
+      }
+
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #f6f8fa;
+          --surface: #ffffff;
+          --line: #d3dae1;
+          --ink: #1c2128;
+          --ink-2: #3d4753;
+          --muted: #64707d;
+          --accent: #9a6700;
+          --crit: #cf222e;
+          --on-accent: #ffffff;
+        }
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .card {
+        width: 100%;
+        max-width: 30rem;
+        padding: 1.75rem;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface);
+      }
+
+      .code {
+        font-size: 2.5rem;
+        font-weight: 600;
+        line-height: 1;
+        color: var(--crit);
+        font-variant-numeric: tabular-nums;
+      }
+
+      h1 {
+        margin: 0.5rem 0 0;
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--ink);
+      }
+
+      .message {
+        margin: 1rem 0 0;
+        padding: 0.625rem 0.75rem;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        font-size: 0.75rem;
+        line-height: 1.6;
+        color: var(--ink-2);
+        overflow-x: auto;
+      }
+
+      dl {
+        margin: 0.75rem 0 0;
+        font-size: 0.6875rem;
+        color: var(--muted);
+      }
+
+      dt { display: inline; }
+      dd { display: inline; margin: 0 0 0 0.4rem; color: var(--ink-2); }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1.5rem;
+      }
+
+      .actions form { flex: 1 1 8rem; margin: 0; }
+
+      button {
+        width: 100%;
+        padding: 0.6rem 0.75rem;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: transparent;
+        color: var(--ink-2);
+        font-family: inherit;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: border-color 0.15s ease, opacity 0.15s ease;
+      }
+
+      button:hover { border-color: var(--accent); color: var(--ink); }
+
+      button.primary {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: var(--on-accent);
+      }
+
+      button.primary:hover { opacity: 0.9; }
+
+      button:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+
+      footer {
+        font-size: 0.6875rem;
+        color: var(--muted);
+      }
+
+      footer a { color: var(--muted); }
+    </style>
+  </head>
+
+  <body>
+    <div class="card">
+      <div class="code">{{.StatusCode}}</div>
+      <h1>{{.Title}}</h1>
+
+      {{ if .Message }}
+      <div class="message">{{.Message}}</div>
+      {{ end }}
+
+      {{ if .RequestID }}
+      <dl>
+        <dt>Request ID</dt>
+        <dd>{{.RequestID}}</dd>
+      </dl>
+      {{ end }}
+
+      {{ if .Redirect }}
+      <div class="actions">
+        <form method="GET" action="{{.ProxyPrefix}}/sign_in">
+          <input type="hidden" name="rd" value="{{.Redirect}}">
+          <button type="submit" class="primary">Sign in</button>
+        </form>
+        <form method="GET" action="{{.Redirect}}">
+          <button type="submit">Go back</button>
+        </form>
+      </div>
+      {{ end }}
+    </div>
+
+    <footer>
+      {{ if eq .Footer "-" }}{{ else if eq .Footer "" }}
+      <p>Secured with <a href="https://github.com/oauth2-proxy/oauth2-proxy#oauth2_proxy">OAuth2 Proxy</a> {{.Version}}</p>
+      {{ else }}
+      <p>{{.Footer}}</p>
+      {{ end }}
+    </footer>
+  </body>
+</html>
+{{end}}
