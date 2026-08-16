@@ -7,10 +7,14 @@
 # outright. Everything else on this platform deploys itself on push; this makes
 # the coordinator match.
 #
-# NOT ACTIVE YET. This file is deliberately not listed in kustomization.yaml —
-# see the commented block there. Enabling it is the cutover, and the SQLite
-# database must be seeded into the volume first or the coordinator starts with
-# an empty build history. Follow the runbook before uncommenting.
+# Cut over on 2026-08-16. The systemd unit on k3s-worker-1 no longer receives
+# traffic; its database was copied into the volume below, and the hand-written
+# Service and EndpointSlice it depended on are gone.
+#
+# The database is seeded, not created: starting this with an empty volume is a
+# working coordinator with no build history, which looks like data loss and is
+# indistinguishable from it in the UI. If this ever has to be rebuilt from
+# scratch, copy builds.db in before scaling up, not after.
 #
 # ── Where the database lives ────────────────────────────────────────────────
 #
@@ -159,18 +163,31 @@ spec:
               value: "https://tinycloud.sasiru.lk"
             - name: IMAGE_PREFIX
               value: "ghcr.io/sasirulk"
-          envFrom:
-            # Credentials only: BUILD_COORDINATOR_TOKEN, GITHUB_TOKEN,
-            # GITHUB_USERNAME. Created by hand from the values already in
-            # /etc/tinycloud/build-coordinator.env — never committed. Template
-            # and exact procedure:
-            # tinycloud-platform/deploy/build-coordinator-secret-template.yaml
+
+            # Credentials come from the Secrets already in this namespace, not
+            # from a hand-created build-coordinator-env copied out of
+            # /etc/tinycloud/build-coordinator.env on the node.
             #
-            # BUILD_COORDINATOR_TOKEN must match the `token` key of the existing
-            # build-coordinator-token Secret that tinycloud-api authenticates
-            # with, or every API call to the coordinator returns 401.
-            - secretRef:
-                name: build-coordinator-env
+            # Copying them would have meant a Secret that exists in no
+            # repository and no runbook step that can be verified — and worse,
+            # BUILD_COORDINATOR_TOKEN has to be byte-identical to the token
+            # tinycloud-api authenticates with or every call returns 401. Read
+            # from the same Secret the API reads and they cannot drift.
+            - name: BUILD_COORDINATOR_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: build-coordinator-token
+                  key: token
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: github-pat
+                  key: token
+            - name: GITHUB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: github-pat
+                  key: username
           resources:
             requests:
               memory: "64Mi"

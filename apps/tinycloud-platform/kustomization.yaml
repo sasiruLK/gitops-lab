@@ -19,24 +19,15 @@ resources:
   - ingressroute-blog.yaml
   - ingressroute-build-runner.yaml
 
-  # ── Build coordinator cutover switch ──────────────────────────────────────
+  # The build coordinator runs as a pod here, as of 2026-08-16. It was a
+  # systemd unit on k3s-worker-1 reached through a selector-less Service and a
+  # hand-written EndpointSlice naming 10.0.0.73; both are gone, and
+  # build-coordinator-endpoint.yaml with them.
   #
-  # The coordinator still runs as a systemd unit on k3s-worker-1, so the
-  # selector-less Service and hand-written EndpointSlice below are still what
-  # routes traffic to it.
-  #
-  # build-coordinator.yaml replaces both with a real Deployment, Service and
-  # PersistentVolumeClaim. It is left out of this list on purpose: Argo CD
-  # auto-syncs this path, so listing it would start the pod within minutes of a
-  # push — with an empty database, while the systemd unit is still running and
-  # still holds the real one. The build history would appear to vanish.
-  #
-  # Cutover, once the database has been copied into the volume and the systemd
-  # unit stopped: swap the two lines below and delete
-  # build-coordinator-endpoint.yaml. Nothing else here changes — the Service
-  # keeps its name and port, so the IngressRoute above still resolves.
-  - build-coordinator-endpoint.yaml
-  # - build-coordinator.yaml
+  # The volume was seeded with the existing SQLite database before this line
+  # was uncommitted, so the pod started with the real build history rather than
+  # migrating an empty schema over it.
+  - build-coordinator.yaml
 
 configMapGenerator:
   # The sign-in and error pages oauth2-proxy serves. Generated rather than
