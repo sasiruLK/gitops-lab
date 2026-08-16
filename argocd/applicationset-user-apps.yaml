@@ -14,6 +14,12 @@ spec:
         revision: main
         directories:
           - path: apps/*
+          # blog serves the apex domain and its manifests pin namespace
+          # tinycloud, but this template would name the destination after the
+          # directory — giving it namespace "blog", where nothing runs. The
+          # generated Application then reported no pods.
+          - path: apps/blog
+            exclude: true
           - path: apps/tinycloud-api
             exclude: true
           - path: apps/tinycloud-ui
