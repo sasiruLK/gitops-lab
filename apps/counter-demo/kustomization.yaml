@@ -5,7 +5,7 @@ namespace: counter-demo
 
 resources:
   - namespace.yaml
-  - pull-secret-sync.yaml
+  - pull-secret.yaml
   - deployment.yaml
   - service.yaml
   - resource-quota.yaml
