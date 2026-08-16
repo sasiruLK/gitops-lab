@@ -15,19 +15,20 @@ metadata:
   namespace: argocd
   labels:
     app.kubernetes.io/part-of: tinycloud-platform
-  annotations:
-    # Apply server-side (the CRDs here exceed the annotation size limit for
-    # client-side apply) but diff client-side.
-    #
-    # Argo CD v2.13.3 predates Kubernetes 1.33, so its bundled schema does not
-    # know Deployment .status.terminatingReplicas. Structured merge diff then
-    # fails outright with "field not found in schema", leaving these apps stuck
-    # reporting Unknown — which silently disables drift detection and selfHeal.
-    #
-    # The real fix is upgrading Argo CD, but 2.x is end of life and 3.x is a
-    # major jump for the component managing everything else. This restores diffing
-    # now without that risk.
-    argocd.argoproj.io/compare-options: ServerSideDiff=false
+  # KNOWN BROKEN: this app reports Unknown sync status, which silently disables
+  # drift detection and selfHeal.
+  #
+  # Argo CD v2.13.3 predates Kubernetes 1.33, so its bundled schema does not know
+  # Deployment .status.terminatingReplicas. ServerSideApply's dry-run builds a
+  # typed value from the live object and fails with "field not declared in
+  # schema".
+  #
+  # ServerSideDiff=false was tried and made no difference — the failure is in the
+  # apply path, not the diff feature. Removing ServerSideApply is not an option
+  # either: these CRDs exceed the annotation size limit for client-side apply.
+  #
+  # The only real fix is upgrading Argo CD. 2.x is end of life, so that means
+  # 3.x, a major version jump for the component managing everything else.
 spec:
   project: default
   source:
