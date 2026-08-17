@@ -200,6 +200,14 @@ spec:
                 secretKeyRef:
                   name: github-pat
                   key: username
+
+            # Verifies GitHub push webhooks. Unset disables the webhook route
+            # entirely rather than leaving it accepting unsigned requests.
+            - name: GITHUB_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: github-webhook-secret
+                  key: secret
           resources:
             requests:
               memory: "64Mi"

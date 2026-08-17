@@ -29,5 +29,17 @@ spec:
       services:
         - name: build-coordinator
           port: 8090
+
+    # GitHub push webhooks. Public for the same reason as the runner callback --
+    # the sender is outside the cluster and cannot hold our bearer token -- and
+    # authenticated the same way it has to be: an HMAC over the request body,
+    # verified by the coordinator. oauth2-proxy deliberately does not sit in
+    # front of it; GitHub cannot complete an interactive login.
+    - match: Host(`tinycloud.sasiru.lk`) && PathPrefix(`/v1/webhooks`)
+      kind: Rule
+      priority: 100
+      services:
+        - name: build-coordinator
+          port: 8090
   tls:
     secretName: tinycloud-platform-tls
