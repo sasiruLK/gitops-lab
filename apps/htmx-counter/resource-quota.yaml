@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: htmx-counter-quota
+spec:
+  # Sized to hold maxReplicas pods at the deployment's requests and limits.
+  # Previously an app could pass validation at 10 replicas and then be refused
+  # by this quota at 6.
+  hard:
+    requests.cpu: "600m"
+    requests.memory: "704Mi"
+    limits.cpu: "1500m"
+    limits.memory: "1408Mi"
+    pods: "5"
