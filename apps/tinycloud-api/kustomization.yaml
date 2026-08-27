@@ -7,6 +7,12 @@ resources:
   - service.yaml
   - rbac.yaml
 
+  # The Kubernetes Infra Provider. Deliberately not enabled yet: the pinned
+  # image predates /provider-server, and this instance's dashboard is better
+  # served by the Oracle reads still inside core until those move out to a
+  # provider of their own. The file says both in full.
+  # - provider-kubernetes.yaml
+
 images:
   - name: ghcr.io/sasirulk/tinycloud-platform-api
     newTag: f67788cea249eb0b647e80af115bb89a96b7d32e

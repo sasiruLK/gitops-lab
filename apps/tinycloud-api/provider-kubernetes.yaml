@@ -1,0 +1,324 @@
+# The Kubernetes Infra Provider.
+#
+# Core stopped reading Oracle Cloud in-process on 2026-08-27: every substrate
+# read now goes over the published `/v0` provider contract, and this is the
+# provider that needs no cloud account at all — it answers from the Kubernetes
+# API and metrics-server alone.
+#
+# ── Not wired in yet ────────────────────────────────────────────────────────
+#
+# This file is deliberately absent from kustomization.yaml, for two reasons,
+# both of which have to stop being true before the line there is uncommitted.
+#
+# 1. The image. /provider-server ships in the same image as the API, and the
+#    tag pinned in kustomization.yaml predates it. Enabling this before Image
+#    Updater has bumped to a build of the provider work gives a CrashLoopBackOff
+#    and nothing else.
+#
+# 2. It would make this instance's dashboard worse, not better. A cluster knows
+#    about its two k3s nodes; Oracle knows about all four machines Terraform
+#    manages, including amd-utility-1 and -2, which are not in the cluster. A
+#    cluster knows Traefik's address; Oracle knows the network load balancer's
+#    public IP, which is what the dashboard shows today. Core takes each
+#    capability from the first provider that declares it, ahead of the Oracle
+#    reads still linked into it, so enabling this provider today replaces four
+#    machines with two and a public address with a private one.
+#
+# The second reason goes away when the Oracle reads move out to an Infra
+# provider of their own: two providers, each declaring what it can actually
+# answer, and no in-process fallback to be shadowed. That is the next piece of
+# work. Until then this file is here to be reviewed and to be ready, not to run.
+#
+# Prerequisite when it is enabled: a Vault secret named
+# `tinycloud-provider-kubernetes-token` holding {"token": "<32 random bytes>"},
+# alongside the other secrets in argocd/oci-vault-secrets.yaml.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tinycloud-provider-kubernetes
+  namespace: tinycloud
+  labels:
+    app.kubernetes.io/name: tinycloud-provider-kubernetes
+    app.kubernetes.io/component: provider
+    app.kubernetes.io/part-of: tinycloud-platform
+---
+# Everything the provider reads, and nothing else. A provider holds its
+# substrate's credentials, so what it is allowed to see is the whole question:
+# this one can list nodes and read node metrics, and that is all.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: tinycloud-provider-kubernetes
+  labels:
+    app.kubernetes.io/part-of: tinycloud-platform
+rules:
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list"]
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["nodes"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: tinycloud-provider-kubernetes
+  labels:
+    app.kubernetes.io/part-of: tinycloud-platform
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: tinycloud-provider-kubernetes
+subjects:
+  - kind: ServiceAccount
+    name: tinycloud-provider-kubernetes
+    namespace: tinycloud
+---
+# The ingress address is one Service in one namespace, so it is a Role there
+# rather than another cluster-wide grant. Traefik is this cluster's ingress
+# controller; note that its address is the node's, not the network load
+# balancer's public IP the dashboard shows today.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: tinycloud-provider-kubernetes-ingress
+  namespace: kube-system
+  labels:
+    app.kubernetes.io/part-of: tinycloud-platform
+rules:
+  - apiGroups: [""]
+    resources: ["services"]
+    resourceNames: ["traefik"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tinycloud-provider-kubernetes-ingress
+  namespace: kube-system
+  labels:
+    app.kubernetes.io/part-of: tinycloud-platform
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: tinycloud-provider-kubernetes-ingress
+subjects:
+  - kind: ServiceAccount
+    name: tinycloud-provider-kubernetes
+    namespace: tinycloud
+---
+# The token core authenticates with, read back from Vault like every other
+# credential here. Orphan and Retain for the same reason as the rest: a bad
+# rebase in this directory should cost a stale Secret, not a credential.
+#
+# Both sides read this token from a mounted file on every request, so replacing
+# the Vault secret rotates it without redeploying core or the provider.
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: tinycloud-provider-kubernetes-token
+  namespace: tinycloud
+  labels:
+    app.kubernetes.io/part-of: tinycloud-platform
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: oci-vault
+    kind: ClusterSecretStore
+  target:
+    name: tinycloud-provider-kubernetes-token
+    creationPolicy: Orphan
+    deletionPolicy: Retain
+  dataFrom:
+    - extract:
+        key: tinycloud-provider-kubernetes-token
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tinycloud-provider-kubernetes
+  namespace: tinycloud
+  labels:
+    app.kubernetes.io/name: tinycloud-provider-kubernetes
+    app.kubernetes.io/component: provider
+    app.kubernetes.io/part-of: tinycloud-platform
+    app.kubernetes.io/managed-by: argocd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: tinycloud-provider-kubernetes
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: tinycloud-provider-kubernetes
+        app.kubernetes.io/component: provider
+        app.kubernetes.io/part-of: tinycloud-platform
+    spec:
+      serviceAccountName: tinycloud-provider-kubernetes
+      imagePullSecrets:
+        - name: ghcr-creds
+      priorityClassName: platform
+      containers:
+        # The same image as the API, different entrypoint. The kustomize images
+        # transformer rewrites this tag alongside the API's, so core and its
+        # provider are never a build apart.
+        - name: provider
+          image: ghcr.io/sasirulk/tinycloud-platform-api:f67788cea249eb0b647e80af115bb89a96b7d32e
+          command: ["/provider-server"]
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9090
+              name: http
+          env:
+            - name: PROVIDER_KIND
+              value: infra
+            - name: PROVIDER_NAME
+              value: kubernetes
+            - name: PORT
+              value: "9090"
+            - name: PROVIDER_TOKEN_FILE
+              value: /etc/tinycloud/provider/token
+            - name: INGRESS_SERVICE
+              value: kube-system/traefik
+          volumeMounts:
+            - name: token
+              mountPath: /etc/tinycloud/provider
+              readOnly: true
+          # Liveness only says the process is up. It is deliberately not a
+          # substrate check: a cluster API that is briefly unreachable should
+          # show as a warning on the dashboard, not restart this pod.
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 9090
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 9090
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: "32Mi"
+              cpu: "10m"
+            limits:
+              memory: "64Mi"
+              cpu: "100m"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: token
+          secret:
+            secretName: tinycloud-provider-kubernetes-token
+            items:
+              - key: token
+                path: token
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tinycloud-provider-kubernetes
+  namespace: tinycloud
+  labels:
+    app.kubernetes.io/name: tinycloud-provider-kubernetes
+    app.kubernetes.io/component: provider
+    app.kubernetes.io/part-of: tinycloud-platform
+spec:
+  selector:
+    app.kubernetes.io/name: tinycloud-provider-kubernetes
+  ports:
+    - name: http
+      port: 9090
+      targetPort: http
+---
+# The namespace denies everything by default (apps/tinycloud-platform/
+# network-policies.yaml), so these three rules are what the provider is allowed
+# to do. The bearer token is what the provider checks; this is what stops
+# anything else in the namespace opening a connection to it at all.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-api-to-provider-kubernetes
+  namespace: tinycloud
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: tinycloud-provider-kubernetes
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: tinycloud-api
+      ports:
+        - protocol: TCP
+          port: 9090
+---
+# The provider's own egress: the Kubernetes API, and the DNS to find it.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-provider-kubernetes-egress
+  namespace: tinycloud
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: tinycloud-provider-kubernetes
+  policyTypes:
+    - Egress
+  egress:
+    - ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 6443
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+# Core's side. allow-api-egress in apps/tinycloud-platform/network-policies.yaml
+# lists the ports core may reach out on and 9090 is not among them; this adds
+# it rather than editing that file, so enabling and disabling this provider is
+# one line in one kustomization.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-api-egress-to-provider-kubernetes
+  namespace: tinycloud
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: tinycloud-api
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: tinycloud-provider-kubernetes
+      ports:
+        - protocol: TCP
+          port: 9090
