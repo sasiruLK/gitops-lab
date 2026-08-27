@@ -60,6 +60,29 @@ spec:
                 secretKeyRef:
                   name: build-coordinator-token
                   key: token
+            # The Oracle Cloud reads behind /v1/infra: the compartment its
+            # machines, metrics and alarms live in, the network load balancer
+            # the public IP comes from, and the bucket the backups go to.
+            #
+            # These were compiled into the image until 2026-08-27, as defaults
+            # naming this tenancy. A published image that contacts the
+            # maintainer's account unless told otherwise is not a platform
+            # anyone else can run, so the defaults are now empty and an
+            # instance names its own account here. Nothing is secret: they are
+            # identifiers, and they are in the runbook and in Terraform.
+            #
+            # Remove a line and that read is reported as unconfigured on the
+            # dashboard rather than attempted. Remove all four and core
+            # contacts no cloud account at all, which is what a fresh install
+            # does.
+            - name: OCI_COMPARTMENT_ID
+              value: "ocid1.tenancy.oc1..aaaaaaaa7xgc5ijlnvzktzftj6ho6jpzymmiira5vhug65pcvtcdy26m3ebq"
+            - name: OCI_NLB_ID
+              value: "ocid1.networkloadbalancer.oc1.iad.amaaaaaaul44qqiaaemwwblgkpws7pf5b2p3wetsqlyn3lhkzmls425odupq"
+            - name: OCI_OBJECT_STORAGE_NAMESPACE
+              value: "idzghas4xwzv"
+            - name: OCI_BACKUP_BUCKET
+              value: "tinycloud-backups"
           resources:
             requests:
               memory: "64Mi"
